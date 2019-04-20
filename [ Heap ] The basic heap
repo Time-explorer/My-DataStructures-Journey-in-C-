@@ -1,0 +1,95 @@
+#include<stdio.h>
+#include<malloc.h>
+
+typedef struct heap_content
+{
+    int maxlimit;
+    int size;
+    int *element;
+}heap;
+
+heap *heap_initialize(heap *h, int maxsize)
+{
+    h = (heap *)malloc(sizeof(struct heap_content));
+    h->maxlimit = maxsize;
+    h->size = 0;
+    h->element = (int *)calloc(maxsize+1,sizeof(int));
+    h->element[0] = 0;
+
+    return h;
+}
+
+void heap_insert(heap *h, int x)
+{
+    int i;
+
+    if(h->size>=h->maxlimit) return h;
+
+    for(i=++h->size;h->element[i/2]>x;i/=2)  /* 此谓上(向上)滤 */
+        h->element[i] = h->element[i/2];    //由于循环条件限制(精简)
+    h->element[i] = x;                      //操作目标包括循环打破后
+                                            //的操作目标都是 i 而不是 i/2
+                                            //但条件里却用 i/2 来判断
+}
+
+int find_min(heap *h)
+{
+    int minnum,lastnum;
+    int i,next;
+
+    if(!h->size) return 0;
+    minnum = h->element[1];
+    lastnum = h->element[h->size--];
+
+    for(i=1;i*2<=h->size;i=next){           /* 此谓下(向下)滤 */
+        next = i * 2;           //目标是安顿好lastnum，将空穴移除
+        if(next!=h->size&&h->element[next+1]<h->element[next])
+            next ++;
+                        //由于要把空穴下移来移除，所以要用这个分支来判
+                        //断结点的左右孩哪个比较小并填补空穴来下移空穴
+                        //(在刚开始[根处]的空穴被取代后，意味着新的最小
+                        // 者替代了空穴[根处])
+
+        if(lastnum>h->element[next])
+            h->element[i] = h->element[next];
+                        //如果lastnum操作目标，则表示还要进一步查找，比较
+        else break;
+                        //这时终于找到适合地点(lastnum比较小)
+    }
+    h->element[i] = lastnum;
+
+    return minnum;
+}
+
+void read_heap(heap *h)
+{
+    int i=0;
+
+    while(++i<=h->size)
+        printf("-%d",h->element[i]);
+    printf("\n");
+}
+
+int main(void)
+{
+    int i=4;
+    int n,input;
+    heap *h;
+
+    printf("Please input the number:");
+    scanf("%d",&n);
+
+    h = heap_initialize(h,n);
+    do{
+        scanf("%d",&input);
+        heap_insert(h,input);
+    }while(input!=1);
+    printf("Successful building a heap!Now we test another\n");
+
+    do{
+        printf("-(%d)-\n",find_min(h));
+        read_heap(h);
+    }while(i--);
+
+    return 0;
+}
