@@ -1,0 +1,161 @@
+#include<stdio.h>
+#include<stdlib.h>
+
+typedef struct Binary_Tree
+{
+    int num;
+    struct Binary_Tree *ld;
+    struct Binary_Tree *rd;
+}*tree;
+
+typedef struct Tree_queue
+{
+    tree include;
+    struct Tree_queue *next;
+}tq;
+
+void Insert_queue(tq **front, tq **rear, tree rt)
+{
+    tq *p=*front,*q;
+
+    p = (tq *)malloc(sizeof(tq));
+    p->include = rt;
+    p->next = NULL;
+    if((*rear)!=NULL) (*rear)->next = p;
+    if(!(*front)) *front = p;
+    *rear = p;
+}
+
+tree Quit_queue(tq **front, tq **rear)
+{
+    tq *p=*front;
+    tree content;
+
+    if(!(*front)) return NULL;
+    content = (*front)->include;
+    *front = (*front)->next;
+    if(!(*front)) *rear = NULL;
+    free(p);
+    return content;
+}
+
+tree build_tree(tree *rt, int x)
+{
+    tree p,q=*rt,r=NULL;
+
+    while(q!=NULL)
+    {
+        r = q;
+        if(x>=q->num) q = q->rd;
+        else q = q->ld;
+    }
+    p = (tree)malloc(sizeof(tree));
+    p->num = x;
+    p->ld = p->rd = NULL;
+    if(r!=NULL)
+    {
+        if(x>=r->num) r->rd = p;
+        else r->ld = p;
+    }
+    else *rt = p;
+};
+
+void Read_tree_level(tree rt)      //层次遍历
+{
+    tree p=rt;
+    tq *front=NULL,*rear=NULL;
+
+    if(!rt) return;
+    Insert_queue(&front,&rear,p);
+    while(front!=NULL)
+    {
+        p = Quit_queue(&front,&rear);
+        printf("%d->",p->num);
+        if(p->ld!=NULL) Insert_queue(&front,&rear,p->ld); //没用else if，表明将当
+        if(p->rd!=NULL) Insert_queue(&front,&rear,p->rd); //前结点的子树都放入队列
+    }
+}
+
+void Read_tree_front(tree rt)
+{
+    if(rt!=NULL)
+    {
+        printf("%d-",rt->num);
+        Read_tree_front(rt->ld);
+        Read_tree_front(rt->rd);
+    }
+}
+
+int main(void)
+{
+    int n;
+    tree root=NULL;
+
+    printf("\nPlease input some numbers to build a tree:");
+    scanf("%d",&n);
+    while(n>=0)
+    {
+        build_tree(&root,n);
+        printf("\nPlease input other numbers to build a tree:");
+        scanf("%d",&n);
+    }
+    Read_tree_front(root);
+    printf("\nYou choose exit.\nBut you can choose the former: 1.delete; 2.insert :");
+    scanf("%d",&n);
+    while(n>=0)
+    {
+        switch(n)
+        {
+            case 1:
+                printf("\nPlease input the number you want to delete:");
+                scanf("%d",&n);
+                delete_tree(&root,n);
+                break;
+            case 2:
+                break;
+            default:break;
+        }
+        printf("\n1.delete; 2.insert :");
+        scanf("%d",&n);
+    }
+    Read_tree_front(root);
+    printf("\n");
+    Read_tree_level(root);
+}
+
+//tree delete_tree(tree *rt, int d)  //删除思想：删除的结点由该结点的
+//{                                  //右孩的最小最左后代继承
+//    tree p=*rt,f=*rt,q;             //无论是链表还是树，删除都需要记录前驱(f)
+//                                    来帮忙连接被切断的部分
+//    while(p!=NULL)
+//    {
+//
+//        if(d==p->num) break;
+//        f = p;
+//        if(d>p->num) p = p->rd;
+//        else p = p->ld;
+//    }
+//    if(!p)
+//    {
+//        printf("Fail to search the number you want to delete!");
+//        return;
+//        printf("-----\n");
+//
+//    }
+//    q = p;
+//    if(p->rd!=NULL)                   //不用while的原因：目标是找比右孩小
+//    {                                 //因此只要一次if就可以承接下面的查找
+//        f = p;                        //当前结点的右孩的左孩的操作
+//        p = p->rd;
+//    }
+//    while(p->ld!=NULL)
+//    {
+//        f = p;
+//        p = p->ld;
+//    }
+//    q->num = p->num;
+//    if(p==f->ld) f->ld = p->rd;          //因为目标是最小最左的叶子，所以即将
+//    else f->rd = p->rd;
+//    free(p);                          //调换前该叶子的父结点的左孩只能是
+//    Read_tree_front(*rt);
+//}                                     //叶子的右孩
