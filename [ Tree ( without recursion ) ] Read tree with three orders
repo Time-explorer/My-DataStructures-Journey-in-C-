@@ -1,0 +1,189 @@
+#include<stdio.h>
+#include<stdlib.h>
+
+typedef struct t_content
+{
+    int num;
+    struct t_content *lc;
+    struct t_content *rc;
+}tree;
+
+struct tree_stack
+{
+    tree *cont;
+    struct tree_stack *next;
+};
+
+void pop(struct tree_stack **top)
+{
+    struct tree_stack *del;
+
+    del = *top;
+    *top = (*top)->next;
+    free(del);
+}
+
+void push(tree *rt, struct tree_stack **top)
+{
+    struct tree_stack *temp;
+
+    temp = (struct tree_stack *)malloc(sizeof(struct tree_stack));
+    temp->cont = rt;
+    temp->next = *top;
+    *top = temp;
+}
+
+tree build_tree(tree **rt, int x)
+{
+    tree *s,*p;
+
+    if(!(*rt))
+    {
+        /*(*rt)->num = x;                  //rt本为空，不能直接赋值
+        (*rt)->lc = (*rt)->rc = NULL;*/    //需借助其他指针来赋值
+        s = (tree *)malloc(sizeof(tree));
+        s->num = x;
+        s->lc = s->rc = NULL;
+        *rt = s;
+        return;
+    }
+    p = s = *rt;
+    while(s!=NULL)
+    {
+        p = s;
+        if(x>s->num) s = s->rc;
+        else s = s->lc;
+    }
+    s = (tree *)malloc(sizeof(tree));
+    s->num = x;
+    s->lc = s->rc = NULL;
+    if(x>p->num) p->rc = s;
+    else p->lc = s;
+}
+
+void Output_first(tree *rt)
+{
+    struct tree_stack *top=NULL;
+
+    if(!rt)
+    {
+        printf("It is an empty tree!\n");
+        return;
+    }
+    while(top!=NULL||rt!=NULL)               //同时为零才退出循环
+    {
+        while(rt!=NULL)
+        {
+            push(rt,&top);
+            printf("%d-",rt->num);
+            rt = rt->lc;
+        }
+        rt = top->cont->rc;
+        pop(&top);
+    }
+}
+
+void Output_middle(tree *rt)
+{
+    struct tree_stack *top=NULL;
+
+    if(!rt)
+    {
+        printf("It is an empty tree!!\n");
+        return;
+    }
+    while(top!=NULL||rt!=NULL)
+    {
+        while(rt!=NULL)
+        {
+            push(rt,&top);
+            rt = rt->lc;
+        }
+        printf("=%d=",top->cont->num);
+        rt = top->cont->rc;
+        pop(&top);
+    }
+}
+
+void Output_Final(tree *rt)          //每棵树先遍历完子树再读根
+{
+    struct tree_stack *top=NULL;
+    tree *p;
+
+    if(!rt)
+    {
+        printf("It is an empty tree!!\n");
+        return;
+    }
+    while(top!=NULL||rt!=NULL)
+    {
+        while(rt!=NULL)
+        {
+            push(rt,&top);
+            rt = rt->lc;
+            if(!rt) rt = top->cont->rc;      //不同于先序，中序，后续是要遍历到
+        }                                    //树的最末的，所以要试试右子树
+        p = top->cont;
+        printf("=%d",top->cont->num);
+        pop(&top);
+        if(top!=NULL)                         //通过暂时赋0来确定是否遍历过
+        {                                     //由此来配合上面的循环
+            if(p==top->cont->lc) top->cont->lc = NULL;
+            else if(p==top->cont->rc) top->cont->rc = NULL;
+            rt = top->cont->rc;
+        }
+    }
+}
+
+void Output_tree_first(tree *rt)
+{
+    if(rt!=NULL)
+    {
+        printf("%d-",rt->num);
+        Output_tree_first(rt->lc);
+        Output_tree_first(rt->rc);
+    }
+}
+
+void Output_tree_Middle(tree *rt)
+{
+    if(rt!=NULL)
+    {
+        Output_tree_Middle(rt->lc);
+        printf("-%d-",rt->num);
+        Output_tree_Middle(rt->rc);
+    }
+}
+
+void Output_tree_Final(tree *rt)
+{
+    if(rt!=NULL)
+    {
+        Output_tree_Final(rt->lc);
+        Output_tree_Final(rt->rc);
+        printf("-%d",rt->num);
+    }
+}
+
+int main(void)
+{
+    int n;
+    tree *root=NULL;
+
+    printf("Please input a num:");
+    scanf("%d",&n);
+    while(n>=0)
+    {
+        build_tree(&root,n);
+        printf("\n-Successfully!!\nPlease input another num:");
+        scanf("%d",&n);
+    }
+    Output_tree_first(root); printf("\n");
+    Output_first(root); printf("\n");
+    Output_tree_Middle(root); printf("\n");
+    Output_middle(root);printf("\n");
+    Output_tree_Final(root); printf("\n");
+    Output_Final(root); printf("\n");
+
+    return 0;
+}
