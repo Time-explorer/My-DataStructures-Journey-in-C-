@@ -1,0 +1,131 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<time.h>
+#define max(a,b) (a>b)?a:b        //陷阱多多，所以调用时最好不吝啬括号
+
+struct AVL_tree
+{
+    int num;
+    struct AVL_tree *left_son;
+    struct AVL_tree *right_son;
+    int height;
+};
+
+typedef struct AVL_tree *tree;
+
+tree double_left_heavy(tree rt)   //左左重
+{
+    tree tmp = rt->left_son;
+    rt->left_son = tmp->right_son;
+    tmp->right_son = rt;
+
+    rt->height = (max(height(rt->left_son),height(rt->right_son))) + 1;
+    tmp->height = (max(height(tmp->left_son),rt->height)) + 1;
+
+    return tmp;
+}
+
+tree double_right_heavy(tree rt)   //右右重
+{
+    tree tmp = rt->right_son;
+    rt->right_son = tmp->left_son;
+    tmp->left_son = rt;
+
+    rt->height = (max(height(rt->left_son),height(rt->right_son))) + 1;
+    tmp->height = (max(rt->height,height(tmp->right_son))) + 1;
+
+    return tmp;
+}
+
+tree right_left_heavy(tree rt)    //右-左-重
+{
+    rt->right_son = double_left_heavy(rt->right_son);
+    rt = double_right_heavy(rt);
+
+    return rt;
+}
+
+tree left_right_heavy(tree rt)    //左-右-重
+{
+    rt->left_son = double_right_heavy(rt->left_son);
+    rt = double_left_heavy(rt);
+
+    return rt;
+}
+
+int height(tree rt)
+{
+    if(!rt) return -1;
+    else return rt->height;
+}
+
+tree build_tree(tree rt,int x)
+{
+    if(!rt)
+    {
+        rt = (tree)malloc(sizeof(struct AVL_tree));
+        rt->num = x;
+        rt->height = 0;
+        rt->left_son = rt->right_son = NULL;
+    }
+    else if(x<rt->num)
+    {
+        rt->left_son = build_tree(rt->left_son,x);
+        if(height(rt->left_son)-height(rt->right_son)==2) //此时结点已插入在左树的叶子上
+            if(x<rt->left_son->num) rt = double_left_heavy(rt);//所以判断上只要看清楚
+            else rt = left_right_heavy(rt);    //不平衡结点的左树高-右树高就可以了
+    }                                          //不会出现负数情况，因为x必定插在左树上
+    else if(x>rt->num)
+    {
+        rt->right_son = build_tree(rt->right_son,x);
+        if(height(rt->right_son)-height(rt->left_son)==2)  //同上
+            if(x>rt->right_son->num) rt = double_right_heavy(rt);
+            else rt = right_left_heavy(rt);
+    }
+
+    else printf("This number have been in the tree!\n");
+
+    rt->height = (max(height(rt->left_son),height(rt->right_son))) + 1;
+    return rt;
+}
+
+void first_read(tree rt)
+{
+
+    if(rt!=NULL)
+    {
+        printf("%d-",rt->num);
+        first_read(rt->left_son);
+        first_read(rt->right_son);
+    }
+}
+
+void read_tree(tree rt, int flag)
+{
+    int i=0,j=flag;
+    if(rt!=NULL)
+    {
+        read_tree(rt->right_son,flag+1);
+        while(i++<5*flag) printf(" ");
+        printf("%d<\n",rt->num);
+        read_tree(rt->left_son,flag+1);
+    }
+}
+
+int main(void)
+{
+    int test_num,x;
+    tree root=NULL;
+
+    srand(time(0));
+    scanf("%d",&test_num);
+    while(test_num--)
+    {
+        x = rand()%10000;
+        root = build_tree(root,x);
+    }
+    first_read(root);
+    printf("\n");
+    read_tree(root,0);
+    return 0;
+}
