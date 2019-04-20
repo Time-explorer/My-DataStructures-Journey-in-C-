@@ -1,0 +1,73 @@
+#include<stdio.h>
+#include<stdlib.h>             //没有课本上的辅助前空结构指针，头->有数据结构
+
+typedef struct queue
+{
+    int data;
+    struct queue *link;
+}que;
+
+que build_queue(que **head, que **tail, int x)
+{
+    que *p;
+
+    p = (que *)malloc(sizeof(que));
+    p->data = x;
+
+    p->link = NULL;
+    if(*tail==NULL) *head = *tail = p;
+    else
+    {
+        (*tail)->link = p;
+        *tail = p;
+    }
+}
+
+void goto_queue(que **head,que **tail)
+{
+    que *p;
+
+    if(*head)
+    {
+        printf("the front of queue is %d\n",(*head)->data);
+        p = *head;
+        if(*head==*tail) *head = *tail = NULL;
+        else *head = (*head)->link;
+        free(p);
+    }
+
+}
+
+void Output_queue(que *head)
+{
+    while(head)
+    {
+        printf("%d",head->data);
+        head = head->link;
+    }
+    printf("\n");
+}
+
+int main(void)
+{
+    int choose,it;
+    que *rare=NULL,*front=NULL;
+
+    while(scanf("%d",&choose)!=EOF)
+    {
+        switch(choose)
+        {
+        case 1:
+            scanf("%d",&it);
+            build_queue(&front,&rare,it);
+            break;
+        case 2:
+            goto_queue(&front,&rare);
+            break;
+        default:
+            Output_queue(front);
+            break;
+        }
+    }
+    return 0;
+}
