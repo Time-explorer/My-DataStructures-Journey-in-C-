@@ -1,0 +1,171 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<time.h>
+#define max(a,b) (a>b)?a:b
+
+typedef struct avltree
+{
+    int n;
+    int height;
+    struct avltree *leftchild;
+    struct avltree *rightchild;
+}*tree;
+
+typedef struct stack
+{
+    tree te;
+    struct stack *next;
+}stack;
+
+stack push(stack **top,tree rt)
+{
+    stack *sk;
+
+    sk = (stack *)malloc(sizeof(struct stack));
+    sk->te = rt;
+    sk->next = *top;
+    *top = sk;
+}
+
+stack pop(stack **top)
+{
+    stack *sk;
+
+    sk = *top;
+    (*top) = (*top)->next;
+    free(sk);
+}
+
+int height(tree rt)
+{
+    if(rt==NULL) return -1;
+    else return rt->height;
+}
+
+tree double_left_heavy(tree rt)
+{
+    tree tmp = rt->leftchild;
+    rt->leftchild = tmp->rightchild;
+    tmp->rightchild = rt;
+
+    rt->height = (max(height(rt->leftchild),height(rt->rightchild))) + 1;
+    tmp->height = (max(rt->height,height(tmp->leftchild))) + 1;
+
+    return tmp;
+}
+
+tree double_right_heavy(tree rt)
+{
+    tree tmp = rt->rightchild;
+    rt->rightchild = tmp->leftchild;
+    tmp->leftchild = rt;
+
+    rt->height = (max(height(rt->leftchild),height(rt->rightchild))) + 1;
+    tmp->height = (max(rt->height,height(tmp->rightchild))) + 1;
+
+    return tmp;
+}
+
+tree left_right_heavy(tree rt)
+{
+    rt->leftchild = double_right_heavy(rt->leftchild);
+    return double_left_heavy(rt);
+}
+
+tree right_left_heavy(tree rt)
+{
+    rt->rightchild = double_left_heavy(rt->rightchild);
+    return double_right_heavy(rt);
+}
+
+tree insert_tree(tree rt, int x)
+{
+    stack *top=NULL;
+    tree p=rt;
+
+    while(p!=NULL){
+        push(&top,p);                //从此刻起记录插入点的祖先
+        if(x>=p->n) p = p->rightchild;
+        else p = p->leftchild;
+    }
+    p = (tree)malloc(sizeof(struct avltree));
+    p->n = x;
+    p->leftchild = p->rightchild = NULL;
+    p->height = 0;
+    if(!top) return p;
+    if(x>=top->te->n) top->te->rightchild = p;
+    else top->te->leftchild = p;
+
+    while(top!=NULL){                   /*avl核心*/
+        p = top->te;                    //此时的结点
+        pop(&top);                      //由于栈是越小越接近根，所以这儿可以当父结点用
+        if(height(p->leftchild)-height(p->rightchild)>=2){ //左边重了
+            if(x<p->leftchild->n) {                        //左左重
+                if(!top) rt = double_left_heavy(p);        //根不平衡的操作
+                else if(p==top->te->leftchild)        //判断结点是父结点的左孩还是右孩
+                    top->te->leftchild = double_left_heavy(p);
+                else top->te->rightchild = double_left_heavy(p);
+            }
+            else {                                   //左-右重
+                if(!top) rt = left_right_heavy(p);
+                else if(p==top->te->leftchild)
+                    top->te->leftchild = left_right_heavy(p);
+                else top->te->rightchild = left_right_heavy(p);
+            }
+        }
+        else if(height(p->rightchild)-height(p->leftchild)>=2){//右边重了（同上）
+            if(x>=p->rightchild->n) {
+                if(!top) rt = double_right_heavy(p);
+                else if(p==top->te->leftchild)
+                    top->te->leftchild = double_right_heavy(p);
+                else top->te->rightchild = double_right_heavy(p);
+            }
+            else {
+                if(!top) rt = right_left_heavy(p);
+                else if(p==top->te->leftchild)
+                    top->te->leftchild = right_left_heavy(p);
+                else top->te->rightchild = right_left_heavy(p);
+            }
+        }
+        p->height = (max(height(p->leftchild),height(p->rightchild))) + 1;//更新高度
+    }
+    return rt;
+}
+
+void preorder(tree rt)
+{
+    if(rt!=NULL){
+        printf("%d-",rt->n);
+        preorder(rt->leftchild);
+        preorder(rt->rightchild);
+    }
+}
+
+void Inorder(tree rt, int flag)
+{
+    int i=0,j=flag;
+    if(rt!=NULL)
+    {
+        Inorder(rt->rightchild,flag+1);
+        while(i++<5*flag) printf(" ");
+        printf("%d<\n",rt->n);
+        Inorder(rt->leftchild,flag+1);
+    }
+}
+
+int main(void)
+{
+    tree root=NULL;
+    int num,b;
+
+    srand(time(0));
+    scanf("%d",&num);
+    while(num--){
+        b = rand()%200;
+        printf("Insert:%d\n",b);
+        root = insert_tree(root,b);
+    }
+    preorder(root);
+    printf("\n");
+    Inorder(root,0);
+}
