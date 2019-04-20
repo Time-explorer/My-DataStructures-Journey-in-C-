@@ -1,0 +1,141 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<math.h>
+
+enum new_enum { existence , empty};
+
+typedef struct num_union *cell;
+typedef struct hash_table *hash;
+
+struct num_union
+{
+    int num;
+    enum new_enum state;  //每个数组单元的状态（存在与否），方便查找
+};
+
+struct hash_table
+{
+    int tablesize;
+    cell allcell;        //动态num_union数组，大小由tablesize决定
+};
+
+int hash_function(int size, int x)
+{
+    return x % size;
+}
+
+//可在此定义双散列辅助函数new_hash_function
+
+int next_prime(int n)
+{
+    int i;
+
+    while(n++){
+        for(i=2;i<=sqrt(n);i++)
+            if(!(n%i)) break;
+        if(i>sqrt(n)) return n;
+    }
+}
+
+void initialize_hash(hash *h, int tablesize)
+{
+    int i;
+
+    tablesize = next_prime(tablesize);
+    *h = (hash)malloc(sizeof(struct hash_table));
+    (*h)->tablesize = tablesize;
+    (*h)->allcell = (cell)malloc(tablesize * sizeof(struct num_union));
+    for(i=0;i<tablesize;i++) (*h)->allcell[i].state = empty;
+}
+
+int find_cell(hash h, int x)  //返回位置，非指针
+{
+    int pos = hash_function(h->tablesize,x);
+    //int origin_pos=pos;
+    int i=0;
+
+    while(h->allcell[pos].state!=empty&&h->allcell[pos].num!=x){
+            //state为空直接跳，有利于删除(找不到目标)的终止判断，亦能协助插入操作
+            //state不为空，num相同，也就是定位到了x的正确位置
+            //则删除和插入(将之前被删状态改为存在)能正常运行
+        pos = (pos+2*i-1) % h->tablesize;
+        //pos = (origin_pos + i * i) % h->tablesize;    //若要用双散列，则i*i可改为i*new_hash_function
+        i++;
+    }
+
+    return pos;
+}
+
+hash insert(hash h, int x)
+{
+    int pos;
+
+    pos = find_cell(h,x);
+    h->allcell[pos].num = x;
+    h->allcell[pos].state = existence;
+
+    return h;
+}
+
+hash _delete(hash h, int x)
+{
+    int pos;
+
+    pos = find_cell(h,x);
+    if(h->allcell[pos].state==empty) printf("The number isn't existed!!\n");
+    else {
+        h->allcell[pos].state = empty;
+        printf("Operating (delete) successfully!\n");
+    }
+
+    return h;
+}
+
+int main(void)
+{
+    hash field;
+    int time,time1,time2;
+    int x;
+
+    scanf("%d",&time);
+    initialize_hash(&field,time);
+    while(time--){
+        scanf("%d",&x);
+        field = insert(field,x);
+    }
+    printf("Setting hash table is completed\n");
+    scanf("%d",&time1);
+    while(time1--){
+        scanf("%d",&x);
+        if(field->allcell[find_cell(field,x)].state==existence)
+            printf("It is in the table(%d)\n",find_cell(field,x));
+        else printf("Failed!!\n");
+    }
+    scanf("%d",&time2);
+    while(time2--){
+        scanf("%d",&x);
+        field = _delete(field,x);
+    }
+    return 0;
+}
+
+/*  //平方探测法2：i = +- (i*i)
+int find_char(hash h, char *c)
+{
+    int pos = hash_function(c,h->tablesize);
+    int p1=pos;
+    int i=1,imutiply=0;
+
+    while(h->charcell[pos].state!=empty&&strcmp(c,h->charcell[pos].key)){
+        if(imutiply<=0) imutiply = i * i;
+        else {
+            imutiply = -(i * i);
+            i++;
+        }
+        pos = (p1 + imutiply) % h->tablesize;
+        if(pos<0) pos += h->tablesize;
+    }
+
+    return pos;
+}
+*/
