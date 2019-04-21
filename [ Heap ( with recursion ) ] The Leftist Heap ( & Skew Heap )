@@ -1,0 +1,133 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<time.h>
+
+#define insert(h,x) ( h = insert_heap(h,x) ) //这儿两个宏只是为了能跟简单的二叉堆
+#define deletemin(h) ( findMin(&h) )         //兼容而已，详情看main函数里的备注行
+
+typedef struct heap_content *heap;
+
+struct heap_content
+{
+    int npl;            /*////！若用[斜堆]的话，可以不用npl标记！////*/
+    heap lc;
+    heap rc;
+    int level;
+};
+
+//-----------------------------
+heap Merge(heap h1, heap h2);
+heap Merge_next(heap h1, heap h2);
+heap insert_heap(heap h, int x);
+heap delete_min(heap h);
+void read_heap(heap h, int x);      //里面只是输出格式化而已，没什么技术含量
+void InorderTraversal(heap h);      //采用中序遍历
+int findMin(heap *h);
+//-----------------------------
+
+int main(void)
+{
+    heap h1,h2;
+    int input,N,i;
+
+    srand(time(NULL));
+    scanf("%d",&N);
+    h1 = h2 = NULL;
+
+    for(i=N;i>0;i--){
+        h1 = insert_heap(h1,rand()%(N*5));          //可以和39行互换
+        //insert(h1,rand()%(N*5));
+        h2 = insert_heap(h2,rand()%(N*5)+N*5);      //可以和41行互换
+        //insert(h2,rand()%(N*5)+N*5);
+    }
+    read_heap(h1,1);
+    read_heap(h2,2);
+
+    h1 = Merge(h1,h2);
+    read_heap(h1,1);
+
+    printf("\n\n--These following are tests about Delete the min:\n");
+    for(i=1;i<N;i*=2){
+        h1 = delete_min(h1);                        //可以和52行互换
+        //int tmp = deletemin(h1);
+        read_heap(h1,1);
+        printf("\n");
+    }
+
+    return 0;
+}
+
+heap Merge(heap h1, heap h2)    /*合并思想：将较大堆连到较小堆的右支*/
+{                               /*但这个函数只是做驱动，核心是Merge_next*/
+    if(!h1) return h2;          //62，63行都是一个堆空则返另一个堆
+    else if(!h2) return h1;
+    else {
+        if(h1->level>h2->level) return Merge_next(h2,h1);   //配合Merge_next函数
+        else return Merge_next(h1,h2);
+    }
+}
+
+heap Merge_next(heap h, heap H)     /*合并核心*/
+{
+    if(!h->lc) h->lc = H;               //若左空，则右必定空(左式堆定义)
+                                        //因此可以直接 H 接到左分支
+    else{
+        h->rc = Merge(h->rc,H);         //将 h->rc 和 H 放入驱动函数比较
+        if( h->lc->npl < h->rc->npl ){  //判断合并后是否破坏左式堆定义
+            H = h->lc;      /*////若用[斜堆]的话，可以省略判定！////*/
+            h->lc = h->rc;  /*////斜堆每次合并都要转换一次左右孩////*/
+            h->rc = H;
+        }
+        h->npl = h->rc->npl + 1;        //更新npl
+    }
+
+    return h;
+}
+
+heap insert_heap(heap h, int x)
+{
+    heap tmp;
+
+    tmp = (heap)malloc(sizeof(struct heap_content));
+    tmp->level = x;
+    tmp->npl = 0;
+    tmp->lc = tmp->rc = NULL;
+
+    return Merge(tmp,h);                //插入后合并(一个点也是堆)
+}
+
+heap delete_min(heap h)
+{
+    heap lh,rh;
+
+    printf("--( Min: %d )--\n",h->level);
+    lh = h->lc;
+    rh = h->rc;
+    free(h);
+
+    return Merge(lh,rh);                //删除根后要合并左右堆
+}
+
+void InorderTraversal(heap h)
+{
+    if(h!=NULL){
+        InorderTraversal(h->lc);
+        printf("=%d=",h->level);
+        InorderTraversal(h->rc);
+    }
+}
+
+void read_heap(heap h, int i)
+{
+    printf("h%d:",i);
+    InorderTraversal(h);
+    printf("\n");
+}
+
+int findMin(heap *h)                    //返回一个整数，不过需要用双重指针
+{                                       //帮忙改动整个堆(只能返回 int )
+    int min = (*h)->level;
+    *h = delete_min(*h);
+
+    return min;
+}
