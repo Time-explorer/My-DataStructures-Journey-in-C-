@@ -1,0 +1,178 @@
+#include<stdio.h>
+#include<stdlib.h>                          /*本代码也能适应基本二叉堆*/
+
+#define insert(h,x) ( h = insert_heap(h,x) )
+#define deletemin(h) ( findMin(&h) )
+
+typedef struct leftist_heap *heap;
+typedef struct heap_stack *stack;
+
+struct leftist_heap
+{
+    int npl;
+    int level;
+    heap lc;
+    heap rc;
+};
+
+struct heap_stack
+{
+    heap pointh;
+    stack link;
+};
+
+void push(stack *s, heap h);
+void pop(stack *s);
+//-----------------------------
+heap Merge(heap h1, heap h2);
+void swap(heap h);                          //调换左右堆
+int find_npl(heap h);                       //不得不需要一个找npl的函数来解决空结点情况
+heap insert_heap(heap h, int x);
+heap delete_min(heap h);
+void read_heap(heap h, int x);
+void InorderTraversal(heap h, int flag);    //以树的形式打印堆(较直观)
+int findMin(heap *h);
+//-----------------------------
+
+int main(void)
+{
+
+    heap h1,h2;
+    int input,N,i;
+
+    scanf("%d",&N);
+    h1 = h2 = NULL;
+
+    for(i=0;i<N;i++){
+        h1 = insert_heap(h1,rand()%(N*5));
+        h2 = insert_heap(h2,N*5+rand()%(N*5));
+    }
+    read_heap(h1,1);
+    read_heap(h2,2);
+
+    h1 = Merge(h1,h2);
+    read_heap(h1,1);
+
+    printf("\n\n--These following are tests about Delete the min:\n");
+    for(i=1;i<N;i*=2){
+        h1 = delete_min(h1);
+        read_heap(h1,1);
+        printf("\n");
+    }
+
+    return 0;
+
+}
+
+void push(stack *s, heap h)
+{
+    stack tmp = (stack)malloc(sizeof(struct heap_stack));
+    tmp->pointh = h;
+    tmp->link = *s;
+    *s = tmp;
+}
+
+void pop(stack *s)
+{
+    stack del = *s;
+    *s = (*s)->link;
+    free(del);
+}
+
+heap Merge(heap h1, heap h2)
+{
+
+    stack s = NULL;
+    heap tmp;
+
+    if(!h1) return h2;
+    else if(!h2) return h1;
+
+    while(h1&&h2){                                        //将遍历过的结点填入栈
+        if(h1->level > h2->level) {
+            push(&s,h2);
+            h2 = h2->rc;
+        }
+        else {
+            push(&s,h1);
+            h1 = h1->rc;
+        }
+    }
+
+    tmp = (h1)?h1:h2;                                     //将另一个堆(非空)记录下，配合下面的循环102,103行
+
+    while(s){                                             //基本思想跟递归法类似，不过需要左右都顾及
+        if(!s->pointh->lc) s->pointh->lc = tmp;
+        else s->pointh->rc = tmp;                         //跟递归不同，非递归在这儿需要看看右堆
+        if(find_npl(s->pointh->lc) < find_npl(s->pointh->rc))
+            swap(s->pointh);
+        s->pointh->npl = find_npl(s->pointh->rc) + 1;
+        tmp = s->pointh;                                  //记录当前堆，配合102,103行(重连接每个堆)
+        pop(&s);
+    }
+
+    return tmp;
+
+}
+
+void swap(heap h)
+{
+    heap tmp = h->lc;
+    h->lc = h->rc;
+    h->rc = tmp;
+}
+
+int find_npl(heap h)
+{
+    if(h) return h->npl;
+    else return -1;                     //空结点返 -1
+}
+
+heap insert_heap(heap h, int x)
+{
+    heap tmp = (heap)malloc(sizeof(struct leftist_heap));
+    tmp->level = x;
+    tmp->npl = 0;
+    tmp->lc = tmp->rc = NULL;
+
+    return Merge(h,tmp);
+}
+
+heap delete_min(heap h)
+{
+    heap left,right;
+
+    printf("--( Min: %d )--\n",h->level);
+    left = h->lc;
+    right = h->rc;
+    free(h);
+
+    return Merge(left,right);
+}
+
+void read_heap(heap h, int x)
+{
+    printf("\n∨∨∨∨∨∨ [ h%d ] ∨∨∨∨∨∨\n\n",x);
+    InorderTraversal(h,0);
+    printf("\n\n∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧\n");
+}
+
+void InorderTraversal(heap h, int flag)
+{
+    int i=0;
+    if(h!=NULL)
+    {
+        InorderTraversal(h->rc,flag+1);
+        while(i++<3*flag) printf(" ");
+        printf("%d<\n",h->level);
+        InorderTraversal(h->lc,flag+1);
+    }
+}
+
+int findMin(heap *h)
+{
+    int min = (*h)->level;
+    *h = delete_min(*h);
+
+    return min;
+}
