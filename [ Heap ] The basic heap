@@ -23,7 +23,7 @@ void heap_insert(heap *h, int x)
 {
     int i;
 
-    if(h->size>=h->maxlimit) return h;
+    if(h->size>=h->maxlimit) return;
 
     for(i=++h->size;h->element[i/2]>x;i/=2)  /* 此谓上(向上)滤 */
         h->element[i] = h->element[i/2];    //由于循环条件限制(精简)
