@@ -26,7 +26,6 @@ void pop(stack *s);
 //-----------------------------
 heap Merge(heap h1, heap h2);
 void swap(heap h);                          //调换左右堆
-int find_npl(heap h);                       //不得不需要一个找npl的函数来解决空结点情况
 heap insert_heap(heap h, int x);
 heap delete_min(heap h);
 void read_heap(heap h, int x);
@@ -99,15 +98,17 @@ heap Merge(heap h1, heap h2)
         }
     }
 
-    tmp = (h1)?h1:h2;                                     //将另一个堆(非空)记录下，配合下面的循环102,103行
+    tmp = (h1)?h1:h2;                                     //将另一个堆(非空)记录下，配合下面的循环104,105行
 
-    while(s){                                             //基本思想跟递归法类似，不过需要左右都顾及
+    while(s){                            //基本思想跟递归法类似，不过需要左右都顾及
         if(!s->pointh->lc) s->pointh->lc = tmp;
-        else s->pointh->rc = tmp;                         //跟递归不同，非递归在这儿需要看看右堆
-        if(find_npl(s->pointh->lc) < find_npl(s->pointh->rc))
-            swap(s->pointh);
-        s->pointh->npl = find_npl(s->pointh->rc) + 1;
-        tmp = s->pointh;                                  //记录当前堆，配合102,103行(重连接每个堆)
+        else {
+            s->pointh->rc = tmp;         //跟递归不同，非递归在这儿需要看看右堆
+            if( s->pointh->lc->npl < s->pointh->rc->npl )
+                swap(s->pointh);
+            s->pointh->npl = s->pointh->rc->npl + 1;
+        }
+        tmp = s->pointh;                 //记录当前堆，配合104,105行(重连接每个堆)
         pop(&s);
     }
 
@@ -120,12 +121,6 @@ void swap(heap h)
     heap tmp = h->lc;
     h->lc = h->rc;
     h->rc = tmp;
-}
-
-int find_npl(heap h)
-{
-    if(h) return h->npl;
-    else return -1;                     //空结点返 -1
 }
 
 heap insert_heap(heap h, int x)
