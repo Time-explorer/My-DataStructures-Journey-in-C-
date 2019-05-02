@@ -1,0 +1,224 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<time.h>
+
+typedef struct Binary_tree *tree;
+typedef struct Binomial_queue *queue;
+
+struct Binary_tree
+{
+    int level;
+    tree nextchild;                                     //传统左分支(下一层)
+    tree brother;                                       //传统右分支(预备根结点)
+};
+
+struct Binomial_queue
+{
+    int size;                                           //队列的结点的数量
+    tree *forest;
+};
+
+int search_maxsize ( int n );
+void initializer_queue ( queue *q );
+tree merge_tree ( tree rt1, tree rt2 );
+void merge_queue ( queue q1, queue q2 );
+queue delete_min ( queue q );
+
+void initializer_Oneleaf( tree *q );                    //测试用辅助函数(重建测试结点)
+void Inorder ( tree rt, int flag );
+void orderqueue ( queue q );
+
+int num;                                        //num为二项队列的基本大小(最大)
+
+int main(void)
+{
+    queue qe1,qe2,Oneleaf_que;
+    int i,max;
+
+    srand((unsigned)time(NULL));                        //以随机数代替人工输入
+    scanf("%d",&num);
+    initializer_queue( &qe1 );
+    initializer_queue( &qe2 );
+    initializer_queue( &Oneleaf_que );
+    Oneleaf_que->size = 1;
+
+    for(i=0;i<num;i++){
+        initializer_Oneleaf( &(Oneleaf_que->forest[0]) );
+        Oneleaf_que->forest[0]->level = rand()%(num*5);
+        merge_queue( qe1,  Oneleaf_que );
+
+        initializer_Oneleaf( &(Oneleaf_que->forest[0]) );
+        Oneleaf_que->forest[0]->level = rand()%(num*10)+(num*5);
+        merge_queue( qe2, Oneleaf_que );
+
+    }
+    free(Oneleaf_que);
+
+    printf("---The queue1 are----:\n"); orderqueue( qe1 );
+    printf("---The queue2 are----:\n"); orderqueue( qe2 );
+    merge_queue( qe1, qe2 );
+    printf("---The queue after merging----:\n");
+    orderqueue( qe1 );
+
+    for(i=1;i<num;i*=2){
+        qe1 = delete_min( qe1 );
+        printf("---The queue after deleting----:\n");
+        orderqueue( qe1 );
+    }
+
+    return 0;
+}
+
+int search_maxsize( int n )
+{
+    int size=0;
+
+    while(n){
+        size ++;
+        n = n >> 1;
+    }
+
+    return size+1;
+}
+
+void initializer_queue( queue *q )              //若需要定义size，则可另外定义大小
+{
+    int i;
+    int maxsize = search_maxsize(num);
+
+    *q = (queue)malloc(sizeof(struct Binomial_queue));
+    (*q)->size = 0;
+    (*q)->forest = (tree*)calloc(maxsize, sizeof(struct Binary_tree));
+                                                //涉及merge_queue中的循环判定(q1,q2
+                                                //的大小要一致)，因此本算法中涉及的
+                                                //新队列都要分配maxsize(输入的num)
+                                                //空间
+    for(i=0;i<maxsize;i++)
+        (*q)->forest[i] = NULL;
+
+}
+
+tree merge_tree( tree rt1, tree rt2 )           //这保证了右分支（brother）都一直小于
+{                                               //根结点（适用于）任何树
+    if( rt1->level > rt2->level )               //即nextchild的结点都小于它的前驱
+        return merge_tree( rt2, rt1 );
+    rt2->brother = rt1->nextchild;
+    rt1->nextchild = rt2;
+
+    return rt1;
+}
+
+void merge_queue( queue q1, queue q2 )            // void <-> queue == true
+{
+    tree t1,t2,front=NULL;
+    int i,j;
+
+    q1->size += q2->size;                       /* 这儿只是逻辑上的大小，其实 */
+                                                /* 真正大小为num(后面全赋NULL)*/
+
+    for( i=0,j=1 ; j <= q1->size; i++, j*=2 ){      //判定条件与循环的运作
+        t1 = q1->forest[i];
+        t2 = q2->forest[i];
+        switch( !!t1 + 2 * !!t2 + 4 * !!front )     //判定非常严谨
+        {
+            case 0:                                 //1-全空，接t1(省略)
+            case 1:                                 //2-只有t1,接t1(省略)
+                break;
+            case 2:                                 //3-只有t2,接t2
+                q1->forest[i] = t2;
+                q2->forest[i] = NULL;               //中断联系，防止q2修改导致q1变化
+                break;
+            case 4:
+                q1->forest[i] = front;              //4-只有front,接front
+                front = NULL;                       //这儿指之前合并的树已经用了(下同)
+                break;
+            case 3:                                 //3-t1,t2在，将两棵树合并，用在
+                front = merge_tree( t1, t2 );       //下个循环的合并
+                q1->forest[i] = q2->forest[i] = NULL;
+                break;
+            case 5:                                 //5-t1,front在，同3
+                front = merge_tree( t1, front );
+                q1->forest[i] = NULL;
+                break;
+            case 6:                                 //6-t2,front在，同3
+                front = merge_tree( t2, front );
+                q2->forest[i] = NULL;
+                break;
+            case 7:                                 //7-全在，则将之前合并的树插入
+                q1->forest[i] = front;              //合并t1,t2用在下个循环
+                front = merge_tree( t1, t2 );
+                q2->forest[i] = NULL;
+                break;
+        }
+    }
+
+    //return q1;                                //如果函数类型是queue，则去掉备注
+}
+
+queue delete_min( queue q )
+{
+    queue deleteq;
+    tree deletetree;
+    int mintree,minindex;
+    int i,j,flag=1;
+
+    for( i=0,j=1 ; j <= q->size; i++, j*=2 ){
+        if(   q->forest[i]
+            && ( flag || q->forest[i]->level < mintree )) {
+            mintree = q->forest[i]->level;
+            minindex = i;
+            flag = 0;
+        }
+    }
+    printf("****The min number is : [ %d ] ****\n",q->forest[minindex]->level);
+    deletetree = q->forest[minindex]->nextchild;
+    free(q->forest[minindex]);
+    q->forest[minindex] = NULL;
+
+    initializer_queue( &deleteq );
+    deleteq->size = 1 << minindex - 1;
+
+    for( i=minindex-1; i>=0; i--){
+        deleteq->forest[i] = deletetree;
+        deletetree = deletetree->brother;
+        deleteq->forest[i]->brother = NULL;
+    }
+    q->size -= deleteq->size + 1;
+                            // 现在q中的结点 = 之前q的结点 - 删除树的结点 + 1（删去的根结点）
+    merge_queue( q, deleteq );
+    free(deleteq);
+
+    return q;
+}
+
+void initializer_Oneleaf( tree *q )
+{
+    *q = (tree)malloc(sizeof(struct Binary_tree));
+    (*q)->brother = (*q)->nextchild = NULL;
+}
+
+void Inorder( tree rt, int flag )
+{
+    int i=0;
+
+    if( rt!=NULL ){
+        Inorder( rt->brother, flag+1 );
+        while(i++<flag) printf("    ");
+        printf("%d<\n",rt->level);
+        Inorder( rt->nextchild, flag+1 );
+    }
+    else {
+        while(i++<flag) printf("    ");
+        printf("NULL\n");
+    }
+}
+
+void orderqueue( queue q )
+{
+    int i,j;
+
+    for( i=0,j=1; j <= q->size; i++,j*=2 ){
+        Inorder( q->forest[i], 0 );
+        printf("\n");
+    }
+}
