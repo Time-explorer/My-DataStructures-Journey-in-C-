@@ -1,0 +1,66 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<time.h>
+
+#define nextchild(i) (2*(i)+1)                          // 从 0 开始计算
+
+void read_array( int *a, int N );
+void Pecolate_Down ( int *a, int index, int N );
+void Array_sort( int *a, int N );
+
+int main(void)
+{
+    int N,i;
+    int *a;
+
+    scanf("%d",&N);
+    srand((unsigned)time(NULL));
+    a = (int *)malloc(N*sizeof(int));
+
+    for( i=0; i<N; i++ )
+        a[i] = rand()%(N*7);
+    read_array(a,N);
+
+    Array_sort(a,N);
+    read_array(a,N);
+
+    return 0;
+}
+
+void read_array( int *a, int N )
+{
+    int i;
+
+    for( i=0; i<N; i++ )
+        printf("%d->",a[i]);
+    printf("\n");
+}
+
+void Pecolate_Down( int *a, int index ,int N )              //和非排序堆不同的是，数组头a[0]在这儿是有效的
+{
+    int tmp;
+    int next;
+
+    for( tmp=a[index] ; nextchild(index)<N; index=next ){
+        next = nextchild(index);
+        if( next<N-1&&a[next]<a[next+1] ) next++;
+
+        if( a[next]>tmp ) a[index] = a[next];
+        else break;
+    }
+    a[index] = tmp;
+}
+
+void Array_sort( int *a, int N )
+{
+    int i=N/2;
+
+    for( ; i>=0; i-- )                    //从n/2开始，这儿可以理解成：下滤从有叶子的树结点开始，而
+        Pecolate_Down(a,i,N);             //从n/2开始就是有最尾数项的结点，因此可以从这开始下滤
+    for( i=N-1; i>=0; i-- ){				 //这个循环会一直减少堆的大小(逻辑上)，保护最后的排序好的数项
+        a[0] ^= a[i];                                     
+        a[i] = a[0] ^ a[i];
+        a[0] ^= a[i];
+        Pecolate_Down(a,0,i);
+    }
+}
