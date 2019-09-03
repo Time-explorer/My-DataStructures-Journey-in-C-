@@ -1,0 +1,77 @@
+#include<stdio.h>
+#include<stdlib.h>
+
+typedef struct Adjacency_List *list;
+
+struct Adjacency_List{
+    int vertex;
+    list next;
+};
+
+void Initialize_AdjacencyList( list **verhead, int vertex_num );
+void Insert_Edge( list verhead, int vertex );
+void Read_AdjacencyList( list *verhead, int vertex_num );
+
+int main()
+{
+
+    int vertex_num;
+    int v1,v2;
+    list *verhead;
+
+    scanf("%d",&vertex_num);
+    Initialize_AdjacencyList( &verhead, vertex_num );
+
+    scanf("%d%d",&v1,&v2);
+    while ( v1!=-1 && v2!=-1 ) {
+        Insert_Edge( verhead[v1], v2 );
+        scanf("%d%d",&v1,&v2);
+    }
+    Read_AdjacencyList( verhead, vertex_num );
+
+    return 0;
+
+}
+
+void Initialize_AdjacencyList( list **verhead, int vertex_num )
+{
+
+    int i;
+
+    *verhead = (list*)malloc(vertex_num*sizeof(struct Adjacency_List));
+    for ( i=0; i<vertex_num; i++ ) {
+        (*verhead)[i] = (list)malloc(sizeof(struct Adjacency_List));
+        (*verhead)[i]->vertex = i;
+        (*verhead)[i]->next = NULL;
+    }
+
+}
+
+void Insert_Edge( list verhead, int vertex )
+{
+
+    list tmp = (list)malloc(sizeof(struct Adjacency_List));
+
+    tmp->vertex = vertex;
+    tmp->next = verhead->next;
+    verhead->next = tmp;
+
+}
+
+void Read_AdjacencyList( list *verhead, int vertex_num )
+{
+
+    int i;
+
+    printf("\n\n");
+    for ( i=0; i<vertex_num; i++ ) {
+        list p=verhead[i]->next;
+        printf("%d",verhead[i]->vertex);
+        while (p) {
+            printf("----->%d",p->vertex);
+            p = p->next;
+        }
+        printf("\n");
+    }
+
+}
