@@ -1,0 +1,76 @@
+#include<stdio.h>
+#include<stdlib.h>
+
+/*
+struct graph{           // 实际中可看情况将矩阵和边数、点数封装在一起
+    int **matrix;
+    int vertex_num;
+    int edge_num;
+};
+*/
+
+void Initialize_matrix( int ***matrix, int vertex_num );
+void read_matrix( int **matrix, int vertex_num );
+
+int main()
+{
+
+    int vertex_num;
+    int **matrix;
+    int v1,v2;
+
+    scanf("%d",&vertex_num);
+    Initialize_matrix(&matrix,vertex_num);
+
+    scanf("%d%d",&v1,&v2);
+    while ( v1>=0 && v2>=0 ) {
+        matrix[v1][v2] = 1;
+        scanf("%d%d",&v1,&v2);
+    }
+    read_matrix(matrix,vertex_num);
+
+    return 0;
+
+}
+
+void Initialize_matrix( int ***matrix, int vertex_num )
+{
+    int i;
+
+    *matrix = (int **)calloc(vertex_num,sizeof(int));
+    for ( i=0; i<vertex_num; i++ ) {
+        (*matrix)[i] = (int *)calloc(vertex_num,sizeof(int));
+        int j;
+        for ( j=0; j<vertex_num; j++ ) {
+            (*matrix)[i][j] = 0;
+        }
+    }
+
+}
+
+void read_matrix( int **matrix, int vertex_num )
+{
+
+    int i;
+
+    printf("\n\n");
+    for ( i=0; i<vertex_num; i++ ) {
+        int j;
+        for ( j=0; j<vertex_num; j++ ) {
+            printf("%d ",matrix[i][j]);
+        }
+        printf("\n");
+    }
+
+    printf("\n\n");
+    for ( i=0; i<vertex_num; i++ ) {
+        int j;
+        printf("%d",i);
+        for ( j=0; j<vertex_num; j++ ) {
+            if ( matrix[i][j] ) {
+                printf("---->%d",j);
+            }
+        }
+        printf("\n");
+    }
+}
