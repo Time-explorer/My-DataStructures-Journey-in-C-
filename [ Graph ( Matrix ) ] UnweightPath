@@ -1,0 +1,170 @@
+#include<stdio.h>
+#include<stdlib.h>
+
+typedef struct queue {
+    int size;
+    int *element;
+    int front;
+    int rear;
+} *Verqueue;
+
+void Initialize_matrix( int ***matrix, int vertex_num );
+void read_matrix( int **matrix, int vertex_num );
+
+void SignalUnweightPath( int **matrix, int vertex_num );
+void Initialize_AidArray( int *p, int *a, int vertex_num );
+
+void Initialize_VerQueue( Verqueue *q, int size );
+void Insert_Queue( Verqueue q, int x );
+int Quit_Queue( Verqueue q );
+
+int main()
+{
+
+    int vertex_num;
+    int **matrix;
+    int v1,v2;
+
+    scanf("%d",&vertex_num);
+    Initialize_matrix(&matrix,vertex_num);
+
+    scanf("%d%d",&v1,&v2);
+    while ( v1>=0 && v2>=0 ) {
+        matrix[v1][v2] = 1;
+        scanf("%d%d",&v1,&v2);
+    }
+    read_matrix(matrix,vertex_num);
+    SignalUnweightPath( matrix, vertex_num );
+
+    return 0;
+
+}
+
+void Initialize_matrix( int ***matrix, int vertex_num )
+{
+    int i;
+
+    *matrix = (int **)calloc(vertex_num,sizeof(int));
+    for ( i=0; i<vertex_num; i++ ) {
+        (*matrix)[i] = (int *)calloc(vertex_num,sizeof(int));
+        int j;
+        for ( j=0; j<vertex_num; j++ ) {
+            (*matrix)[i][j] = 0;
+        }
+    }
+
+}
+
+void read_matrix( int **matrix, int vertex_num )
+{
+
+    int i;
+
+    printf("\n\n");
+    for ( i=0; i<vertex_num; i++ ) {
+        int j;
+        for ( j=0; j<vertex_num; j++ ) {
+            printf("%d ",matrix[i][j]);
+        }
+        printf("\n");
+    }
+
+    printf("\n\n");
+    for ( i=0; i<vertex_num; i++ ) {
+        int j;
+        printf("%d",i);
+        for ( j=0; j<vertex_num; j++ ) {
+            if ( matrix[i][j] ) {
+                printf("---->%d",j);
+            }
+        }
+        printf("\n");
+    }
+}
+
+/**
+ * 这是 [无权非负值有向图] 的最短路径算法，其中的核心思想为：
+ *
+ *  # 从起点开始，将各点按方向 [广度优先遍历] ，每个点的路径长为上一顶点 + 1
+ *  # 使用辅助数据结构 [队列] 来帮助遍历图
+ *  # 使用 [Union/Find 集] 来打印路径
+ *
+ * @arrive[]   记录当前结点的相对路径长
+ * @path[]     记录当前结点的前驱结点
+ * @q          队列
+ *
+ */
+
+void SignalUnweightPath( int **matrix, int vertex_num )
+{
+
+    int *arrive = (int *)malloc( vertex_num*sizeof(int) );
+    int *path = (int *)calloc( vertex_num, sizeof(int) );
+    Verqueue q;
+
+    Initialize_VerQueue( &q, vertex_num );
+    Initialize_AidArray( path, arrive, vertex_num );
+
+    int startpoint;
+    int v;
+    int i;
+
+    scanf("%d",&startpoint);
+    Insert_Queue( q, startpoint );
+    path[startpoint] = startpoint;      // 注意初始化
+    arrive[startpoint] = 0;             // 同上
+    while ( q->front != q->rear ) {
+        v = Quit_Queue(q);
+        for ( i=0; i<vertex_num; i++ ) {
+            if ( matrix[v][i] && arrive[i]<0 ) {
+                arrive[i] = arrive[v] + 1;
+                path[i] = v;
+                Insert_Queue( q, i );
+            }
+        }
+    }
+    free(q);
+
+    int goalpoint;
+
+    while ( vertex_num-- ) {
+        scanf("%d",&goalpoint);
+        while ( goalpoint!=path[goalpoint] ) {
+            printf("%d<-",goalpoint);
+            goalpoint = path[goalpoint];
+        }
+        printf("%d\n",goalpoint);
+    }
+
+}
+
+void Initialize_AidArray( int *p, int *a, int vertex_num )
+{
+    int i;
+    for ( i=0; i<vertex_num; i++ ){
+        p[i] = -1;
+        a[i] = -1;
+    }
+}
+
+void Initialize_VerQueue( Verqueue *q, int size )
+{
+    (*q) = (Verqueue)malloc(sizeof(struct queue));
+    (*q)->element = (int *)calloc( size, sizeof(int) );
+    (*q)->size = size;
+    (*q)->front = (*q)->rear = 0;
+}
+
+void Insert_Queue( Verqueue q, int x )
+{
+    q->element[q->rear] = x;
+    q->rear = ++q->rear % q->size;
+}
+
+int Quit_Queue(Verqueue q)
+{
+    int result = q->element[q->front];
+    q->front = ++q->front % q->size;
+
+    return result;
+}
