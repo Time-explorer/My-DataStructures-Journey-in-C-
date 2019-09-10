@@ -1,0 +1,157 @@
+#include<stdio.h>
+#include<stdlib.h>
+
+typedef struct Adjacency_List *list;
+typedef struct GraphContent *graph;
+
+struct Adjacency_List{
+    int vertex;
+    int weight;
+    list next;
+};
+
+struct GraphContent {
+    list *verhead;
+    int vertex_num;
+};
+
+void Initialize_AdjacencyList( graph *g, int vertex_num );
+void Insert_Edge( graph g, int v1, int v2, int weight );
+void Read_AdjacencyList(graph g);
+
+void PrimAlgorithm(graph g);
+void Initialize_AidArray( int *a, int *k, int *p, int length );
+int GetMinInArray( int *a, int *k, int length );
+
+int main()
+{
+
+    int vertex_num;
+    int v1,v2;
+    int weight;
+    graph g;
+
+    scanf("%d",&vertex_num);
+    Initialize_AdjacencyList( &g, vertex_num );
+
+    scanf("%d%d%d",&v1,&v2,&weight);
+    while ( v1!=-1 && v2!=-1 ) {
+        Insert_Edge( g, v1, v2, weight );
+        scanf("%d%d%d",&v1,&v2,&weight);
+    }
+    Read_AdjacencyList(g);
+    PrimAlgorithm(g);
+
+    return 0;
+
+}
+
+void Initialize_AdjacencyList( graph *g, int vertex_num )
+{
+
+    int i;
+
+    *g = (graph)malloc(sizeof(struct GraphContent));
+    (*g)->vertex_num = vertex_num;
+    (*g)->verhead = (list*)malloc(vertex_num*sizeof(struct Adjacency_List));
+    for ( i=0; i<vertex_num; i++ ) {
+        (*g)->verhead[i] = (list)malloc(sizeof(struct Adjacency_List));
+        (*g)->verhead[i]->vertex = i;
+        (*g)->verhead[i]->next = NULL;
+    }
+
+}
+
+void Insert_Edge( graph g, int v1, int v2, int weight )
+{
+
+    list tmp1 = (list)malloc(sizeof(struct Adjacency_List));
+    tmp1->vertex = v2;
+    tmp1->weight = weight;
+    tmp1->next = g->verhead[v1]->next;
+    g->verhead[v1]->next = tmp1;
+
+    // ÎÞÏòÍ¼¸½¼Ó
+    list tmp2 = (list)malloc(sizeof(struct Adjacency_List));
+    tmp2->vertex = v1;
+    tmp2->weight = weight;
+    tmp2->next = g->verhead[v2]->next;
+    g->verhead[v2]->next = tmp2;
+
+}
+
+void Read_AdjacencyList( graph g )
+{
+
+    int i;
+
+    printf("\n\n");
+    for ( i=0; i<g->vertex_num; i++ ) {
+        list p=g->verhead[i];
+        printf("%d",p->vertex);
+        while ( p=p->next ) {
+            printf("----->%d",p->vertex);
+        }
+        printf("\n");
+    }
+
+}
+
+void PrimAlgorithm(graph g)
+{
+
+    int *path;
+    int *known;
+    int *arrive;
+    path = (int *)calloc( g->vertex_num, sizeof(int) );
+    known = (int *)calloc( g->vertex_num, sizeof(int) );
+    arrive = (int *)calloc( g->vertex_num, sizeof(int) );
+    Initialize_AidArray( arrive, known, path, g->vertex_num );
+
+    int count = g->vertex_num;
+    int now = 0;
+    list p;
+    while ( count-- ) {
+        known[now] = 1;
+        printf("%d -> %d\n",path[now],now);
+        for ( p=g->verhead[now]->next; p; p=p->next ) {
+            if ( arrive[p->vertex]==-1 || arrive[p->vertex] > p->weight ) {
+                arrive[p->vertex] = p->weight;
+                path[p->vertex] = now;
+            }
+        }
+        now = GetMinInArray( arrive, known, g->vertex_num );
+    }
+    free(arrive);
+    free(known);
+    free(p);
+
+}
+
+void Initialize_AidArray( int *a, int *k, int *p, int length )
+{
+    int i;
+    for ( i=0; i<length; i++ ) {
+        a[i] = -1;
+        k[i] = 0;
+        p[i] = 0;
+    }
+}
+
+int GetMinInArray( int *a, int *k, int length )
+{
+    int i;
+    int mini;
+    int m=-1;
+    for ( i=0; i<length; i++ ) {
+        if ( !k[i] ) {
+            if ( m==-1 || m>a[i] && a[i]!=-1 ) {
+                m = a[i];
+                mini = i;
+            }
+        }
+    }
+
+    return mini;
+}
+
