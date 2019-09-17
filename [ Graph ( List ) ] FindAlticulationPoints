@@ -1,0 +1,192 @@
+#include<stdio.h>
+#include<stdlib.h>
+#define min(a,b) ((a<b)?a:b)
+
+typedef struct Adjacency_List *list;
+typedef struct GraphContent *graph;
+
+struct Adjacency_List{
+    int vertex;
+    int weight;
+    list next;
+};
+
+struct GraphContent {
+    list *verhead;
+    int vertex_num;
+};
+
+struct AidArray {
+    int visited;
+    int parent;
+    int num;
+    int low;
+}*arrays;
+
+int counter=0;
+
+void Initialize_AdjacencyList( graph *g, int vertex_num );
+void Insert_Edge( graph g, int v1, int v2, int weight );
+void Read_AdjacencyList(graph g);
+
+void FindArticulationPoints(graph g);
+void GetArticulationPoints( graph g, int i );
+
+int main()
+{
+
+    int vertex_num;
+    int v1,v2;
+    int weight;
+    graph g;
+
+    scanf("%d",&vertex_num);
+    Initialize_AdjacencyList( &g, vertex_num );
+
+    scanf("%d%d%d",&v1,&v2,&weight);
+    while ( v1!=-1 && v2!=-1 ) {
+        Insert_Edge( g, v1, v2, weight );
+        scanf("%d%d%d",&v1,&v2,&weight);
+    }
+    Read_AdjacencyList(g);
+    FindArticulationPoints(g);
+
+    return 0;
+
+}
+
+void Initialize_AdjacencyList( graph *g, int vertex_num )
+{
+
+    int i;
+
+    *g = (graph)malloc(sizeof(struct GraphContent));
+    (*g)->vertex_num = vertex_num;
+    (*g)->verhead = (list*)malloc(vertex_num*sizeof(struct Adjacency_List));
+    for ( i=0; i<vertex_num; i++ ) {
+        (*g)->verhead[i] = (list)malloc(sizeof(struct Adjacency_List));
+        (*g)->verhead[i]->vertex = i;
+        (*g)->verhead[i]->next = NULL;
+    }
+
+}
+
+void Insert_Edge( graph g, int v1, int v2, int weight )
+{
+
+    list tmp1 = (list)malloc(sizeof(struct Adjacency_List));
+    tmp1->vertex = v2;
+    tmp1->weight = weight;
+    tmp1->next = g->verhead[v1]->next;
+    g->verhead[v1]->next = tmp1;
+
+    // ÎÞÏòÍ¼×¨ÓÃ
+    list tmp2 = (list)malloc(sizeof(struct Adjacency_List));
+    tmp2->vertex = v1;
+    tmp2->weight = weight;
+    tmp2->next = g->verhead[v2]->next;
+    g->verhead[v2]->next = tmp2;
+
+}
+
+void Read_AdjacencyList( graph g )
+{
+
+    int i;
+
+    printf("\n\n");
+    for ( i=0; i<g->vertex_num; i++ ) {
+        list p=g->verhead[i];
+        printf("%d",p->vertex);
+        while ( p=p->next ) {
+            printf("----->%d",p->vertex);
+        }
+        printf("\n");
+    }
+
+}
+
+void FindArticulationPoints(graph g)
+{
+
+    int i;
+
+    arrays = (struct AidArray *)calloc( g->vertex_num, sizeof(struct AidArray) );
+    for ( i=0; i<g->vertex_num; i++ ) {
+        arrays[i].visited = 0;
+    }
+
+    GetArticulationPoints( g, 6 );
+
+}
+
+/**
+ * 这是寻找割点的精简算法，其时间复杂度硬生生的压缩成 O(E)，其核心思想为：
+ *
+ * # 用 num 数组来记录每个点被遍历到的顺序
+ * # 用 low 数组来记录每个点在其邻接表中 num 最小的值
+ * # 顶点 v 为割点当且仅当 v 有个儿子 w 使得 low[w] >= num[v]，但这在根处满足 ( 尽管根不是割点 )
+ * #
+ * ### low[v] 的求法：
+ * ### 1 当第一次遍历到时，low[v] = num[v]
+ * ### 2 所有背向边 ( v, w ) 中最低 @num[w]，此时正向边的 @num 值一定比 low[v] 大，但背向边相反
+ * ### 3 所有正向边 ( v, w ) 中最低 @low[w]，这个比较好理解
+ * #
+ * # 通过 low 求法和证明割点的条件来看，用代码语言来修饰 low 的求法将比较复杂，但也非常重要
+ * # 第一种方法可在遍历时直接赋值
+ * # 第二种方法需要判断是否为背向边，此时需要一个数组来记录正向边的顺序 (parent)
+ * # 第三种由于需要后者的 low 值，因此将其放入递归尾，通过后序遍历来逐步求得 low
+ *
+ * @param   @visited    辅助记录结点是否被深度遍历到
+ *
+ */
+void GetArticulationPoints( graph g, int i )
+{
+    list p;
+
+    arrays[i].visited = 1;
+    arrays[i].num = arrays[i].low = counter++;
+
+    for ( p=g->verhead[i]->next; p; p=p->next ) {           // 研究主体为 i
+        if ( !arrays[p->vertex].visited ) {
+            arrays[p->vertex].parent = i;
+            GetArticulationPoints( g, p->vertex );
+            if ( arrays[p->vertex].low >= arrays[i].num ) {
+                printf("%d is an articulation point\n",i);
+            }
+            arrays[i].low = min( arrays[i].low, arrays[p->vertex].low );
+        } else if ( arrays[i].parent != p->vertex ) {
+            arrays[i].low = min( arrays[i].low, arrays[p->vertex].num );
+        }
+    }
+}
+/*
+7
+0 1 1
+1 2 2
+0 3 3
+2 3 4
+2 6 6
+3 4 4
+3 5 5
+4 5 5
+-1 -1 -1
+
+12
+0 1 1
+1 2 2
+0 3 3
+2 3 4
+2 6 6
+3 4 4
+4 5 5
+5 3 3
+7 8 7
+7 10 10
+7 11 11
+8 10 10
+9 8 8
+9 10 10
+9 11 11
+-1 -1 -1
+*/
