@@ -229,9 +229,10 @@ void UnionSet( int *root, int v1, int v2 )
 {
     if ( root[v1]>root[v2] ) {
         UnionSet( root, v2, v1 );
+    } else {
+        root[v1] += root[v2];
+        root[v2] = v1;
     }
-    root[v1] += root[v2];
-    root[v2] = v1;
 }
 /*
 7
