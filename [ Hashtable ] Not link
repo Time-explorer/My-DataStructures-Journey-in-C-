@@ -2,7 +2,7 @@
 #include<stdlib.h>
 #include<math.h>
 
-enum new_enum { existence , empty};
+enum new_enum { existence , empty}; // 如果需要实现删除操作，那么需要添加一个枚举成员来标识，不能直接删除或者赋 empty。（因为会影响其他 key 解决冲突时的处理）
 
 typedef struct num_union *cell;
 typedef struct hash_table *hash;
