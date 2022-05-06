@@ -1,103 +1,117 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<time.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
-void Initialize_Set( int *set, int length );
-int FindInSet( int *set, int aim );
-void UnionWithSet( int *set, int s1, int s2 );
+void Initialize_Set(int *set, int length);
+int FindInSet(int *set, int aim);
+void UnionWithSet(int *set, int s1, int s2);
 
 int main()
 {
-    int *set,*input;
+    int *set, *input;
     int i;
 
-    srand((unsigned)time(NULL));
-    input = (int *)malloc(sizeof(int));
-    scanf("%d",input);
-    set = (int *)calloc(*input,sizeof(int));
+    srand((unsigned) time(NULL));
+    input = (int *) malloc(sizeof(int));
+    scanf("%d", input);
+    set = (int *) calloc(*input, sizeof(int));
 
-    Initialize_Set(set,*input);
+    Initialize_Set(set, *input);
 
-    for ( i=0; i<3; i++ ){
-        int aim = rand()%(*input);
-        printf("[%d]-->%d\n",aim,FindInSet(set,aim));
+    for (i = 0; i < 3; i++)
+    {
+        int aim = rand() % (*input);
+        printf("[%d]-->%d\n", aim, FindInSet(set, aim));
     }
 
-    for ( i=0; i<5; i++ ){
-        int s1 = rand()%(*input);
-        printf("UnionWithSet(%d,%d)\n",s1,(s1+2)%(*input));
-        UnionWithSet(set,s1,(s1+2)%(*input));
+    for (i = 0; i < 5; i++)
+    {
+        int s1 = rand() % (*input);
+        printf("UnionWithSet(%d,%d)\n", s1, (s1 + 2) % (*input));
+        UnionWithSet(set, s1, (s1 + 2) % (*input));
     }
 
-    for ( i=0; i<*input; i++ )
-        printf("[%d]----->%d\n",i,FindInSet(set,i));
+    for (i = 0; i < *input; i++)
+        printf("[%d]----->%d\n", i, FindInSet(set, i));
 
     return 0;
-
 }
 
-void Initialize_Set( int *set, int length )
+void Initialize_Set(int *set, int length)
 {
     int i;
-    for ( i=0; i<length; i++ )
+    for (i = 0; i < length; i++)
         set[i] = -1;
 }
 
-int FindInSet( int *set, int aim )                          /*基本查找思想*/
+/*基本查找思想*/
+int FindInSet(int *set, int aim)
 {
-    if ( set[aim]<0 ){
+    if (set[aim] < 0)
+    {
         return aim;
-    } else {
-        return FindInSet(set,set[aim]);
+    }
+    else
+    {
+        return FindInSet(set, set[aim]);
     }
 }
 
-void UnionWithSet( int *set, int s1, int s2 )           /*基本合并思想*/
+/*基本合并思想*/
+void UnionWithSet(int *set, int s1, int s2)
 {
-    if ( FindInSet(set,s1)!=FindInSet(set,s2) ){
+    if (FindInSet(set, s1) != FindInSet(set, s2))
+    {
         set[s1] = s2;
     }
 }
 
+// /*加入路径压缩方法*/
+// int FindInSet( int *set, int aim )
+// {
+//     if ( set[aim]<0 ){
+//         return aim;
+//     } else {
+//         return set[aim] = FindInSet(set,set[aim]);
+//     }
+// }
 
-//int FindInSet( int *set, int aim )                          /*加入路径压缩方法*/
-//{
-//    if ( set[aim]<0 ){
-//        return aim;
-//    } else {
-//        return set[aim] = FindInSet(set,set[aim]);
-//    }
-//}
+// /*按集合大小来合并(大吞小)*/
+// void UnionWithSet( int *set, int s1, int s2 )
+// {
+//     int root1 = FindInSet(set,s1);
+//     int root2 = FindInSet(set,s2);
 
-//void UnionWithSet( int *set, int s1, int s2 )           /*按集合大小来合并(大吞小)*/
-//{
-//    int root1 = FindInSet(set,s1);
-//    int root2 = FindInSet(set,s2);
-//
-//    if ( root1!=root2 ){
-//        if ( set[root1] < set[root2] ){
-//            set[root1] += set[root2];
-//            set[root2] = root1;
-//        } else {
-//            set[root2] += set[root1];
-//            set[root1] = root2;
-//        }
-//    }
-//}
+//     if ( root1!=root2 ){
+//         if ( set[root1] < set[root2] ){
+//             set[root1] += set[root2];
+//             set[root2] = root1;
+//         } else {
+//             set[root2] += set[root1];
+//             set[root1] = root2;
+//         }
+//     }
+// }
 
-//void UnionWithSet( int *set, int s1, int s2 )              /*按集合树高度来合并(深吞浅)*/
-//{
-//    int root1 = FindInSet(set,s1);
-//    int root2 = FindInSet(set,s2);
-//
-//    if ( root1!=root2 ){
-//        if ( set[root1]>set[root2] ){
-//            set[root1] = root2;
-//        } else {
-//            if ( set[root1]==set[root2] ){
-//                set[root1]--;
-//            }
-//            set[root2] = root1;
-//        }
-//    }
-//}
+// /*按集合树高度来合并(深吞浅)*/
+// void UnionWithSet(int *set, int s1, int s2)
+// {
+//     int root1 = FindInSet(set, s1);
+//     int root2 = FindInSet(set, s2);
+
+//     if (root1 != root2)
+//     {
+//         if (set[root1] > set[root2])
+//         {
+//             set[root1] = root2;
+//         }
+//         else
+//         {
+//             if (set[root1] == set[root2])
+//             {
+//                 set[root1]--;
+//             }
+//             set[root2] = root1;
+//         }
+//     }
+// }

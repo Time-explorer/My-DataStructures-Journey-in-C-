@@ -1,85 +1,99 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<time.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
-void read_array ( int *a, int n );
-int middle_num ( int *a, int c, int l, int r );
-void sort_begin ( int *a, int left, int right );
-void swap_num ( int *t1, int *t2 );
+void read_array(int *a, int n);
+int middle_num(int *a, int c, int l, int r);
+void sort_begin(int *a, int left, int right);
+void swap_num(int *t1, int *t2);
 
 int main(void)
 {
-    int N,i;
+    int N, i;
     int *a;
 
-    srand((unsigned)time(NULL));
-    scanf("%d",&N);
-    a = (int *)calloc( N, sizeof(int) );
+    srand((unsigned) time(NULL));
+    scanf("%d", &N);
+    a = (int *) calloc(N, sizeof(int));
 
-    for( i=0; i<N; i++ )
-        a[i] = rand()%(N*5);
+    for (i = 0; i < N; i++)
+        a[i] = rand() % (N * 5);
 
-    read_array( a, N );
+    read_array(a, N);
 
-    sort_begin( a, 0, N-1 );
-    read_array( a, N );
+    sort_begin(a, 0, N - 1);
+    read_array(a, N);
 
     return 0;
 }
 
-void read_array ( int *a, int n )
+void read_array(int *a, int n)
 {
     int i;
 
-    for( i=0; i<n; i++ )
-        printf("%d->",a[i]);
+    for (i = 0; i < n; i++)
+        printf("%d->", a[i]);
     printf("\n");
 }
 
-void sort_begin ( int *a, int left, int right )
+void sort_begin(int *a, int left, int right)
 {
     int center;
 
-    center = ( left + right )/ 2;
+    center = (left + right) / 2;
 
-    if( right > left ){                 //不用center帮助判断的原因：
-                                        //1.存在center一直等于left(只有一个，死循环)
-                                        //2.center第一次等于left时要排序(存在两个)
+    // 不用 center 帮助判断的原因：
+    // 1.存在 center 一直等于 left (只有一个，死循环)
+    // 2. center 第一次等于 left 时要排序(存在两个)
+    if (right > left)
+    {
         int sign;
-        int i,j;
+        int i, j;
 
-        sign = middle_num( a, center, left, right );
-        i=left;
-        j=right-1;
+        sign = middle_num(a, center, left, right);
+        i = left;
+        j = right - 1;
 
-        while( i<j ){                           /*防止越界，也能中断循环*/
-            while( a[++i]<sign ) {}                 //(判断前先加1或减1)防止整个数组
-            while( a[--j]>sign ) {}                 //的数项都是相同的数导致无法跳出
-                                                    //外循环(while(i<j))
-
-            if( i<j )
-                swap_num( &a[i], &a[j] );
+        /*防止越界，也能中断循环*/
+        while (i < j)
+        {
+            // (判断前先加 1 或减 1)防止整个数组的数项都是
+            // 相同的数导致无法跳出外循环(while(i < j))
+            while (a[++i] < sign) {}
+            while (a[--j] > sign) {}
+            if (i < j)
+                swap_num(&a[i], &a[j]);
         }
-        swap_num( &a[i], &a[right-1] );         //此时a[i]的值必定>=sign，因此可以将
-                                                //其移至数组最后第二项(与sign交换)
-        sort_begin( a, left, i-1 );
-        sort_begin( a, i+1, right );
+        // 此时 a[i] 的值必定 >= sign，因此可以将其移至数组最后第二项(与 sign 交换)
+        swap_num(&a[i], &a[right - 1]);
+        sort_begin(a, left, i - 1);
+        sort_begin(a, i + 1, right);
     }
 }
 
-int middle_num ( int *a, int c, int l, int r )  //将中值移至r-1的位置
+/**
+ * 将中值移至 r-1 位
+ */
+int middle_num(int *a, int c, int l, int r)
 {
-    if( a[l] > a[c] ) swap_num( &a[l], &a[c] ); //结果:c>l
-    if( a[r] < a[l] ) swap_num( &a[r], &a[l] ); //结果:r>l
-    if( a[r] < a[c] ) swap_num( &a[r], &a[c] ); //结果:r>c ( l<c<r )
+    if (a[l] > a[c])
+        swap_num(&a[l], &a[c]); //结果:c>l
+    if (a[r] < a[l])
+        swap_num(&a[r], &a[l]); //结果:r>l
+    if (a[r] < a[c])
+        swap_num(&a[r], &a[c]); //结果:r>c (l < c < r)
 
-    swap_num( &a[c], &a[r-1] );
-    return a[r-1];
+    swap_num(&a[c], &a[r - 1]);
+    return a[r - 1];
 }
 
-void swap_num( int *t1, int *t2 )   //涉及指针的数交换，必须要借助第三变量
-{                                   //因为如果比较双方都是自己，那么
-    int tmp = (*t1);                //加减交换和异或交换都会改变自己(两个地址都一样)，
-    (*t1) = (*t2);                  //无法保存之前的数(帮助交换的值)
+void swap_num(int *t1, int *t2)
+{
+    // 涉及指针的数交换，必须要借助第三变量
+    // 因为如果比较双方都是自己，那么
+    // 加减交换和异或交换都会改变自己(两个地址都一样)，
+    // 无法保存之前的数(帮助交换的值)
+    int tmp = (*t1);
+    (*t1) = (*t2);
     (*t2) = tmp;
 }

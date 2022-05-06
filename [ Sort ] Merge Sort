@@ -1,75 +1,80 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<time.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
-void read_array ( int *a, int N );
-void array_sort ( int *a, int N );
-void merge_sort ( int *a, int *tmp, int left, int right );
-void real_sort ( int *a, int *tmp, int lpos, int cpos, int rpos );
+void read_array(int *a, int N);
+void array_sort(int *a, int N);
+void merge_sort(int *a, int *tmp, int left, int right);
+void real_sort(int *a, int *tmp, int lpos, int cpos, int rpos);
 
 int main(void)
 {
-    int N,i,x;
+    int N, i, x;
     int *a;
 
-    srand((unsigned)time(NULL));
-    scanf("%d",&N);
-    a = (int *)calloc(N,sizeof(int));
+    srand((unsigned) time(NULL));
+    scanf("%d", &N);
+    a = (int *) calloc(N, sizeof(int));
 
-    for( i=0; i<N; i++ )
-        *(a+i) = rand()%(N*5);
-    read_array(a,N);
+    for (i = 0; i < N; i++)
+        *(a + i) = rand() % (N * 5);
+    read_array(a, N);
 
-    array_sort(a,N);
-    read_array(a,N);
+    array_sort(a, N);
+    read_array(a, N);
 
     return 0;
 }
 
-void read_array ( int *a, int N )
+void read_array(int *a, int N)
 {
     int *p;
 
-    for( p=a; p<a+N; p++ )
-        printf("%d->",*p);
+    for (p = a; p < a + N; p++)
+        printf("%d->", *p);
     printf("\n");
-
 }
 
-void array_sort ( int *a, int N )
+void array_sort(int *a, int N)
 {
     int i;
     int *b;
 
-    b = (int *)malloc(N*sizeof(int));
-    merge_sort( a, b, 0 , N-1 );
+    b = (int *) malloc(N * sizeof(int));
+    merge_sort(a, b, 0, N - 1);
     free(b);
 }
 
-void merge_sort ( int *a, int *tmp, int left, int right )
+void merge_sort(int *a, int *tmp, int left, int right)
 {
     int center;
 
-    if( right>left ) {
+    if (right > left)
+    {
         center = (left + right) / 2;
-        merge_sort( a, tmp, left, center );
-        merge_sort( a, tmp, center+1, right );
-        real_sort( a, tmp, left, center, right );
+        merge_sort(a, tmp, left, center);
+        merge_sort(a, tmp, center + 1, right);
+        real_sort(a, tmp, left, center, right);
     }
 }
 
-void real_sort( int *a, int *tmp, int lpos, int cpos, int rpos )
+void real_sort(int *a, int *tmp, int lpos, int cpos, int rpos)
 {
-    int i=lpos,j=cpos+1,k=lpos;
+    int i = lpos, j = cpos + 1, k = lpos;
 
-    while( i<=cpos&&j<=rpos ){
-        if( a[i]<a[j] ) tmp[k] = a[i++];
-        else tmp[k] = a[j++];
+    while (i <= cpos && j <= rpos)
+    {
+        if (a[i] < a[j])
+            tmp[k] = a[i++];
+        else
+            tmp[k] = a[j++];
         k++;
     }
-    while( i<=cpos ) tmp[k++] = a[i++];
-    while( j<=rpos ) tmp[k++] = a[j++];
+    while (i <= cpos)
+        tmp[k++] = a[i++];
+    while (j <= rpos)
+        tmp[k++] = a[j++];
 
-    for( i=lpos; i<=rpos; i++ )
+    for (i = lpos; i <= rpos; i++)
         a[i] = tmp[i];
 }

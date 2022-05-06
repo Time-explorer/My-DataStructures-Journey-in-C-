@@ -1,22 +1,24 @@
-#include<stdio.h>       //这是课本里的，头指针指向未知数据p,不是头个数据元素
-#include<stdlib.h>      //
+#include <stdio.h>
+#include <stdlib.h>
+
+// 这是课本里的，头指针指向未知数据p,不是头个数据元素
 
 typedef struct queue
 {
     int content;
     struct queue *next;
-}QE;
+} QE;
 
-typedef struct          //包装进结构体可以将其当全局变量使用，方便头尾指针移动
+typedef struct // 包装进结构体可以将其当全局变量使用，方便头尾指针移动
 {
-   QE *front,*rear;
-}h_t;
+    QE *front, *rear;
+} h_t;
 
-h_t *build_queue(h_t *l,int x)
+h_t *build_queue(h_t *l, int x)
 {
     QE *p;
 
-    p = (QE *)malloc(sizeof(QE));
+    p = (QE *) malloc(sizeof(QE));
     p->content = x;
     p->next = NULL;
     l->rear->next = p;
@@ -28,14 +30,16 @@ int go_queue(h_t *l)
 {
     QE *p;
 
-    if(l->front==l->rear) return 0;
+    if (l->front == l->rear)
+        return 0;
     else
     {
-        printf("the '%d' is moved\n",l->front->next->content);
+        printf("the '%d' is moved\n", l->front->next->content);
         p = l->front->next;
         l->front->next = l->front->next->next;
         free(p);
-        if(!(l->front->next)) l->rear = l->front;
+        if (!(l->front->next))
+            l->rear = l->front;
         return 1;
     }
 }
@@ -44,12 +48,12 @@ void read_queue(h_t *l)
 {
     QE *p;
 
-    if(l->front!=l->rear)
+    if (l->front != l->rear)
     {
         p = l->front->next;
-        while(p)
+        while (p)
         {
-            printf("%d",p->content);
+            printf("%d", p->content);
             p = p->next;
         }
         printf("\n");
@@ -60,26 +64,29 @@ int main(void)
 {
     int choose;
     int input;
-    QE *q=(QE *)malloc(sizeof(QE));
-    h_t *Lp=(h_t *)malloc(sizeof(h_t));
+    QE *q = (QE *) malloc(sizeof(QE));
+    h_t *Lp = (h_t *) malloc(sizeof(h_t));
 
     Lp->front = Lp->rear = q;
-    while(scanf("%d",&choose)!=EOF)
+    while (scanf("%d", &choose) != EOF)
     {
-        switch(choose)
+        switch (choose)
         {
-            case 1:
-            {
-                scanf("%d",&input);
-                Lp = build_queue(Lp,input);
-                break;
-            }
-            case 2:
-            {
-                if(!go_queue(Lp)) printf("Empty\n");
-                break;
-            }
-            case 3:read_queue(Lp);break;
+        case 1:
+        {
+            scanf("%d", &input);
+            Lp = build_queue(Lp, input);
+            break;
+        }
+        case 2:
+        {
+            if (!go_queue(Lp))
+                printf("Empty\n");
+            break;
+        }
+        case 3:
+            read_queue(Lp);
+            break;
         }
     }
     return 0;

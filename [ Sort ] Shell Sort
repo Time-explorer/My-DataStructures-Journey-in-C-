@@ -1,53 +1,60 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<time.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
-void read_array ( int *a, int N );
-void Shell_sort ( int *a, int N );
+void read_array(int *a, int N);
+void Shell_sort(int *a, int N);
 
 int main(void)
 {
-    int N,i;
+    int N, i;
     int *a;
 
-    srand((unsigned)time(NULL));
-    scanf("%d",&N);
-    a = (int *)malloc(N*sizeof(int));
-    for( i=0; i<N; i++ ){
-        a[i] = rand()%(N<<3);
+    srand((unsigned) time(NULL));
+    scanf("%d", &N);
+    a = (int *) malloc(N * sizeof(int));
+    for (i = 0; i < N; i++)
+    {
+        a[i] = rand() % (N << 3);
     }
-    read_array(a,N);
+    read_array(a, N);
 
-    Shell_sort(a,N);
-    read_array(a,N);
+    Shell_sort(a, N);
+    read_array(a, N);
 
     return 0;
 }
 
-void read_array ( int *a, int N )
+void read_array(int *a, int N)
 {
     int i;
 
-    for( i=0; i<N; i++ )
-        printf("%d->",a[i]);
+    for (i = 0; i < N; i++)
+        printf("%d->", a[i]);
     printf("\n");
 }
 
-void Shell_sort ( int *a, int N )       /*插入排序只是使用固定的递增序列h=1
-                                          的希尔排序*/
+/**
+ * 插入排序只是使用固定的递增序列 h = 1 的希尔排序
+ */
+void Shell_sort(int *a, int N)
 {
-    int orderhead,j,k;
+    int orderhead, j, k;
 
-    for( orderhead=N/2; orderhead>0; orderhead/=2 ){//按一定顺序修改递增序列
-
-        for( j=orderhead; j<N; j++ ){               //每次都从orderhead开始
+    // 按一定顺序修改递增序列
+    // Shell递增序列：   h[i] = h[i+1] / 2;
+    // Hibbard递增序列： h[i] = h[i+1] / 2 + 1;
+    for (orderhead = N / 2; orderhead > 0; orderhead /= 2)
+    {
+        // 每次都从orderhead开始
+        for (j = orderhead; j < N; j++)
+        {
             int tmp = a[j];
-            for( k=j; k>=orderhead && a[k-orderhead]>tmp ; k-=orderhead ){
-                a[k] = a[k-orderhead];
+            for (k = j; k >= orderhead && a[k - orderhead] > tmp; k -= orderhead)
+            {
+                a[k] = a[k - orderhead];
             }
             a[k] = tmp;
         }
     }
 }
-// Shell递增序列：   h[i] = h[i+1] / 2;
-// Hibbard递增序列： h[i] = h[i+1] / 2 + 1;

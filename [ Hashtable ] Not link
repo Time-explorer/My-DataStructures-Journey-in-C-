@@ -1,104 +1,159 @@
-class MyHashSet {
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 
-    private CellContent[] keys;
-    private int capacity;
-    private int cellCount;
-    
-    enum State {exist, empty, deleted};
+enum new_enum
+{
+    existence,
+    empty
+};
 
-    class CellContent {
-        public int key;
-        public State curState;
-        { curState = State.empty; }
-        public void clear() { curState = State.deleted; }
-        public void addCall(int key) { this.key = key; curState = State.exist; }
-    }
+typedef struct num_union *cell;
+typedef struct hash_table *hash;
 
-    /** Initialize your data structure here. */
-    public MyHashSet() {
-        this(1 << 5);
-    }
-    
-    public MyHashSet(int capacity) {
-        this.capacity = getNextPrime(capacity);
-        cellCount = 0;
-        keys = new CellContent[this.capacity];
-        for (int i = 0; i < this.capacity; i++) {
-            keys[i] = new CellContent();
-        }
-    }
-    
-    public void add(int key) {
-        int pos = findPos(key);
-        if (keys[pos].curState == State.exist)
-            return;
-        keys[pos].addCall(key);
-        if (++cellCount >= capacity >> 1) {
-            increaseCap();
-        }
-    }
-    
-    public void remove(int key) {
-        int pos = findPos(key);
-        keys[pos].clear();
-    }
-    
-    /** Returns true if this set contains the specified element */
-    public boolean contains(int key) {
-        return (keys[findPos(key)].curState == State.exist) ? true : false;
-    }
+struct num_union
+{
+    int num;
+    // 每个数组单元的状态（存在与否），方便查找
+    enum new_enum state;
+};
 
-    /**
-     * 
-     * <li>keys[pos].key = <b>key</b></li>
-     * <li>keys[pos].curState = <b>exist | deleted</b></li>
-     * <p>or
-     * <li>keys[pos].key = <b>?</b></li>
-     * <li>keys[pos].curState = <b>empty</b></li>
-     * @param key
-     * @return
-     */
-    private int findPos(int key) {
-        int pos = hash(key);
-        int i = 0;
-        while (keys[pos].curState != State.empty && keys[pos].key != key) {
-            pos = (pos + 2 * ++i - 1) % capacity;
-        }
-        return pos;
-    }
+struct hash_table
+{
+    int tablesize;
+    // 动态 num_union 数组，大小由 tablesize 决定
+    cell allcell;
+};
 
-    private int hash(int key) {
-        return key % capacity;
-    }
-
-    private int getNextPrime(int capacity) {
-        while (true) {
-            int i;
-            capacity++;
-            for (i = 2; i < Math.sqrt(capacity); i++) {
-                if (capacity % i == 0) 
-                    break;
-            }
-            if (i >= Math.sqrt(capacity))
-                return capacity;
-        }
-    }
-
-    private void increaseCap() {
-        CellContent[] oldCell = keys;
-        capacity = getNextPrime(capacity << 1);
-        cellCount = 0;
-        keys = new CellContent[capacity];
-        for (int i = 0; i < capacity; i++) {
-            keys[i] = new CellContent();
-        }
-        for (int i = 0; i < oldCell.length; i++) {
-            if (oldCell[i].curState == State.exist) {
-                add(oldCell[i].key);
-                cellCount++;
-            }
-        }
-        oldCell = null;
-    }
-
+int hash_function(int size, int x)
+{
+    return x % size;
 }
+
+// 可在此定义双散列辅助函数 new_hash_function
+
+int next_prime(int n)
+{
+    int i;
+
+    while (n++)
+    {
+        for (i = 2; i <= sqrt(n); i++)
+            if (!(n % i))
+                break;
+        if (i > sqrt(n))
+            return n;
+    }
+
+void initialize_hash(hash *h, int tablesize)
+{
+    int i;
+
+    tablesize = next_prime(tablesize);
+    *h = (hash)malloc(sizeof(struct hash_table));
+    (*h)->tablesize = tablesize;
+    (*h)->allcell = (cell)malloc(tablesize * sizeof(struct num_union));
+    for (i = 0; i < tablesize; i++)
+        (*h)->allcell[i].state = empty;
+}
+
+int find_cell(hash h, int x) //返回位置，非指针
+{
+    int pos = hash_function(h->tablesize, x);
+    // int origin_pos=pos;
+    int i = 0;
+
+    // state为空直接跳，有利于删除(找不到目标)的终止判断，亦能协助插入操作
+    // state不为空，num相同，也就是定位到了x的正确位置
+    // 则删除和插入(将之前被删状态改为存在)能正常运行
+    while (h->allcell[pos].state != empty && h->allcell[pos].num != x)
+    {
+        pos = (pos + 2 * i - 1) % h->tablesize;
+        // 若要用双散列，则 i * i 可改为 i * new_hash_function
+        // pos = (origin_pos + i * i) % h->tablesize;
+        i++;
+    }
+
+    return pos;
+}
+
+hash insert(hash h, int x)
+{
+    int pos;
+
+    pos = find_cell(h, x);
+    h->allcell[pos].num = x;
+    h->allcell[pos].state = existence;
+
+    return h;
+}
+
+hash _delete(hash h, int x)
+{
+    int pos;
+
+    pos = find_cell(h, x);
+    if (h->allcell[pos].state == empty)
+        printf("The number isn't existed!!\n");
+    else
+    {
+        h->allcell[pos].state = empty;
+        printf("Operating (delete) successfully!\n");
+    }
+
+    return h;
+}
+
+int main(void)
+{
+    hash field;
+    int time, time1, time2;
+    int x;
+
+    scanf("%d", &time);
+    initialize_hash(&field, time);
+    while (time--)
+    {
+        scanf("%d", &x);
+        field = insert(field, x);
+    }
+    printf("Setting hash table is completed\n");
+    scanf("%d", &time1);
+    while (time1--)
+    {
+        scanf("%d", &x);
+        if (field->allcell[find_cell(field, x)].state == existence)
+            printf("It is in the table(%d)\n", find_cell(field, x));
+        else
+            printf("Failed!!\n");
+    }
+    scanf("%d", &time2);
+    while (time2--)
+    {
+        scanf("%d", &x);
+        field = _delete(field, x);
+    }
+
+// 平方探测法 2：i = +- (i*i)
+// int find_char(hash h, char *c)
+// {
+//     int pos = hash_function(c, h->tablesize);
+//     int p1 = pos;
+//     int i = 1, imutiply = 0;
+
+//     while (h->charcell[pos].state != empty && strcmp(c, h->charcell[pos].key))
+//     {
+//         if (imutiply <= 0)
+//             imutiply = i * i;
+//         else
+//         {
+//             imutiply = -(i * i);
+//             i++;
+//         }
+//         pos = (p1 + imutiply) % h->tablesize;
+//         if (pos < 0)
+//             pos += h->tablesize;
+//     }
+
+//     return pos;
+// }

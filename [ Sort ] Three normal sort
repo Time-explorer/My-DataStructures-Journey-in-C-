@@ -1,81 +1,100 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<time.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
-void read_array ( int *a, int N );
-void Array_sort ( int *a, int N );
+void read_array(int *a, int N);
+void Array_sort(int *a, int N);
 
 int main(void)
 {
     int i;
-    int num,N;
+    int num, N;
     int *a;
 
-    srand((unsigned)time(NULL));
-    scanf("%d",&N);
-    a = (int *)calloc(N,sizeof(int));
+    srand((unsigned) time(NULL));
+    scanf("%d", &N);
+    a = (int *) calloc(N, sizeof(int));
 
-    for( i=0; i<N; i++)
-        a[i] = rand()%(N*10);
-    read_array(a,N);
+    for (i = 0; i < N; i++)
+        a[i] = rand() % (N * 10);
+    read_array(a, N);
 
-    Array_sort(a,N);
-    read_array(a,N);
+    Array_sort(a, N);
+    read_array(a, N);
 
     return 0;
 }
 
-void read_array( int *a, int N )
+void read_array(int *a, int N)
 {
     int *p;
-    for( p=a; p<=a+N-1; p++ )
-        printf("%d->",*p);
+    for (p = a; p <= a + N - 1; p++)
+        printf("%d->", *p);
     printf("\n");
 }
-//
-//void Array_sort( int *a, int N )                /*直接插入排序*/
-//{
-//    int i,j;
-//
-//    for( i=1; i<N; i++ ){                       //从a[1]开始，并渐渐增加
-//        int tmp = a[i];
-//        for( j=i; j>=1 && a[j-1]>tmp ; j-- ){   //遍历方向为向前
-//            a[j] = a[j-1];
-//        }
-//        a[j] = tmp;
-//    }
-//}
 
-//void Array_sort( int *a, int N )                /*选择排序*/
-//{
-//    int i,j;
-//
-//    for( i=0; i<N; i++ ){                       //每个数项互相对照一遍
-//        for( j=i+1; j<N; j++ ){
-//            if(a[i]>a[j]){
-//                a[i] += a[j];
-//                a[j] = a[i] - a[j];
-//                a[i] -= a[j];
-//            }
-//        }
-//    }
-//}
-
-void Array_sort( int *a, int N )                /*冒泡排序*/
+/* 直接插入排序 */
+void Array_sort(int *a, int N)
 {
-    int i,j;
-    int cut;                        //cut能在早已排序完的情况下提前跳出循环
+    int i, j;
 
-    for( i=0; i<N; i++ ){                   //记录最后排序完的数项的数量
-        cut = 0;
-        for( j=1; j<N-i; j++ ){             //每次都要从头开始比较
-            if(a[j-1]>a[j]){                //相邻每对数项的大小比较，排序
-                a[j] ^= a[j-1];
-                a[j-1] = a[j] ^ a[j-1];
-                a[j] ^= a[j-1];
-                cut++;
-            }
+    for (i = 1; i < N; i++)
+    {
+        //从a[1]开始，并渐渐增加
+        int tmp = a[i];
+        for (j = i; j >= 1 && a[j - 1] > tmp; j--)
+        {
+            //遍历方向为向前
+            a[j] = a[j - 1];
         }
-        if(!cut) break;
+        a[j] = tmp;
     }
 }
+
+// /*选择排序*/
+// void Array_sort(int *a, int N)
+// {
+//     int i, j;
+
+//     for (i = 0; i < N; i++)
+//     {
+//         //每个数项互相对照一遍
+//         for (j = i + 1; j < N; j++)
+//         {
+//             if (a[i] > a[j])
+//             {
+//                 a[i] += a[j];
+//                 a[j] = a[i] - a[j];
+//                 a[i] -= a[j];
+//             }
+//         }
+//     }
+// }
+
+// /*冒泡排序*/
+// void Array_sort(int *a, int N)
+// {
+//     int i, j;
+//     // cut能在早已排序完的情况下提前跳出循环
+//     int cut;
+
+//     for (i = 0; i < N; i++)
+//     {
+//         //记录最后排序完的数项的数量
+//         cut = 0;
+//         for (j = 1; j < N - i; j++)
+//         {
+//             //每次都要从头开始比较
+//             if (a[j - 1] > a[j])
+//             {
+//                 //相邻每对数项的大小比较，排序
+//                 a[j] ^= a[j - 1];
+//                 a[j - 1] = a[j] ^ a[j - 1];
+//                 a[j] ^= a[j - 1];
+//                 cut++;
+//             }
+//         }
+//         if (!cut)
+//             break;
+//     }
+// }

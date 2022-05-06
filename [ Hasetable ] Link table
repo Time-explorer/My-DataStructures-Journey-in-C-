@@ -1,6 +1,6 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 
 typedef struct LNode *list;
 typedef struct hash_table *hash;
@@ -21,12 +21,16 @@ int next_prime(int n)
 {
     int i;
 
-    while(1){
+    while (1)
+    {
         n++;
-        for(i=2;i<=sqrt(n);i++){
-            if(!(n%i)) break;
+        for (i = 2; i <= sqrt(n); i++)
+        {
+            if (!(n % i))
+                break;
         }
-        if(i>sqrt(n)) return n;
+        if (i > sqrt(n))
+            return n;
     }
 }
 
@@ -35,14 +39,18 @@ hash initializer_hash(hash table, int tablesize)
     int i;
 
     tablesize = next_prime(tablesize);
-    table = (hash)malloc(sizeof(struct hash_table));
-            //先申请建立hash结构的空间（一个hash表）
-    table->L_content = (list)malloc(tablesize*sizeof(struct LNode));
-            //再申请hash表里的链表数组（tablesize个数组）
+    table = (hash) malloc(sizeof(struct hash_table));
+
+    // 先申请建立 hash 结构的空间（一个 hash 表）
+    table->L_content = (list) malloc(tablesize * sizeof(struct LNode));
+
+    // 再申请 hash 表里的链表数组（tablesize 个数组）
     table->tablesize = tablesize;
-    for(i=0;i<tablesize;i++){
-        table->L_content[i] = (list)malloc(sizeof(struct LNode));
-            //每个链表数组的内容空间都申请一次（这里指表头）
+    for (i = 0; i < tablesize; i++)
+    {
+        table->L_content[i] = (list) malloc(sizeof(struct LNode));
+
+        // 每个链表数组的内容空间都申请一次（这里指表头）
         table->L_content[i]->next = NULL;
     }
 
@@ -52,25 +60,31 @@ hash initializer_hash(hash table, int tablesize)
 list search(hash table, int x)
 {
     list q;
-    int p=x%table->tablesize;
+    int p = x % table->tablesize;
 
     q = table->L_content[p];
-    while(q){                     //该循环判断对象是p->next而非p
-        if(q->next&&q->next->num==x) break;
+    // 该循环判断对象是 p->next 而非 p
+    while (q)
+    {
+        if (q->next && q->next->num == x)
+            break;
         q = q->next;
     }
-    return q;  //因为是带头链表，所以此时返回的是搜索位置的前驱
+    // 因为是带头链表，所以此时返回的是搜索位置的前驱
+    return q;
 }
 
 hash insert(hash table, int x)
 {
     list tmp;
-    int p=x%table->tablesize;
+    int p = x % table->tablesize;
 
-    if(search(table,x)) printf("It has been in table!\n");
-    else {
+    if (search(table, x))
+        printf("It has been in table!\n");
+    else
+    {
         printf("ok\n");
-        tmp = (list)malloc(sizeof(struct LNode));
+        tmp = (list) malloc(sizeof(struct LNode));
         tmp->num = x;
         tmp->next = table->L_content[p]->next;
         table->L_content[p]->next = tmp;
@@ -80,11 +94,13 @@ hash insert(hash table, int x)
 
 hash _delete(hash table, int x)
 {
-    list tmp,lp;
+    list tmp, lp;
 
-    tmp = search(table,x);
-    if(!tmp) printf("It has not been in table!\n");
-    else {
+    tmp = search(table, x);
+    if (!tmp)
+        printf("It has not been in table!\n");
+    else
+    {
         lp = tmp->next;
         tmp->next = lp->next;
         free(lp);
@@ -95,26 +111,31 @@ hash _delete(hash table, int x)
 
 void main()
 {
-    hash field,tmp;
-    int time,time1,time2;
+    hash field, tmp;
+    int time, time1, time2;
     int x;
 
-    scanf("%d",&time);
-    field = initializer_hash(field,time);
-    while(time--){
-        scanf("%d",&x);
-        field = insert(field,x);
+    scanf("%d", &time);
+    field = initializer_hash(field, time);
+    while (time--)
+    {
+        scanf("%d", &x);
+        field = insert(field, x);
     }
     printf("Setting hash table is completed\n");
-    scanf("%d",&time1);
-    while(time1--){
-        scanf("%d",&x);
-        if(search(field,x)) printf("It is in the table\n");
-        else printf("Failed!!\n");
+    scanf("%d", &time1);
+    while (time1--)
+    {
+        scanf("%d", &x);
+        if (search(field, x))
+            printf("It is in the table\n");
+        else
+            printf("Failed!!\n");
     }
-    scanf("%d",&time2);
-    while(time2--){
-        scanf("%d",&x);
-        field = _delete(field,x);
+    scanf("%d", &time2);
+    while (time2--)
+    {
+        scanf("%d", &x);
+        field = _delete(field, x);
     }
 }
